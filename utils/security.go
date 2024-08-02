@@ -16,7 +16,7 @@ import (
 
 	"golang.org/x/crypto/pbkdf2"
 
-	config "panacea-shared-lib/config"
+	config "github.com/voxtmault/panacea-shared-lib/config"
 )
 
 const (

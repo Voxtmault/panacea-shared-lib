@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"panacea-shared-lib/config"
+	"github.com/voxtmault/panacea-shared-lib/config"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
