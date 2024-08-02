@@ -73,10 +73,10 @@ type AppConfig struct {
 
 var config *AppConfig
 
-func New() *AppConfig {
+func New(envPath string) *AppConfig {
 
-	if err := godotenv.Load("app.env"); err != nil {
-		log.Println("Failed to locate local .env file, program will proceed with provided env if any is provided")
+	if err := godotenv.Load(envPath); err != nil {
+		log.Println("Failed to locate .env file, program will proceed with provided env if any is provided")
 	}
 
 	config = &AppConfig{
