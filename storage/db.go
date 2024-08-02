@@ -2,11 +2,13 @@ package storage
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/rotisserie/eris"
+	"github.com/voxtmault/panacea-shared-lib/config"
 )
 
 var db *sql.DB
@@ -20,22 +22,36 @@ type MariaDatabaseStats struct {
 }
 
 // InitMaria Establish a connection using the provided credentials with the mariadb service
-func InitMariaDB(dsn mysql.Config) error {
+func InitMariaDB(config *config.DBConfig) error {
 	log.Println("Opening Connection to Database")
 	var err error
 
 	// Validation
-	if dsn.User == "" {
+	if config.DBUser == "" {
 		return eris.New("db username is empty")
 	}
-	if dsn.Passwd == "" {
+	if config.DBPassword == "" {
 		return eris.New("db password is empty")
 	}
-	if dsn.Addr == "" {
+	if config.DBHost == "" || config.DBPort == "" {
 		return eris.New("invalid db address and or port")
 	}
-	if dsn.DBName == "" {
+	if config.DBName == "" {
 		return eris.New("invalid db name")
+	}
+
+	dsn := mysql.Config{
+		User:                 config.DBUser,
+		Passwd:               config.DBPassword,
+		AllowNativePasswords: true,
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%s:%s", config.DBHost, config.DBPort),
+		DBName:               config.DBName,
+		TLSConfig:            "true",
+		MultiStatements:      false,
+		Params: map[string]string{
+			"charset": "utf8",
+		},
 	}
 
 	db, err = sql.Open(mariaDriver, dsn.FormatDSN())
