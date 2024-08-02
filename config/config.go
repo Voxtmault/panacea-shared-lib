@@ -1,9 +1,12 @@
 package config
 
 import (
+	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 type DBConfig struct {
@@ -71,6 +74,11 @@ type AppConfig struct {
 var config *AppConfig
 
 func New() *AppConfig {
+
+	if err := godotenv.Load("app.env"); err != nil {
+		log.Println("Failed to locate local .env file, program will proceed with provided env if any is provided")
+	}
+
 	config = &AppConfig{
 		DBConfig: DBConfig{
 			DBDriver:   getEnv("DB_DRIVER", "mysql"),
