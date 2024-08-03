@@ -1,3 +1,4 @@
 .vscode
 .idea
 *_test.go
+*.env

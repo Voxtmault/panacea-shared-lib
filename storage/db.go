@@ -21,12 +21,7 @@ type MariaDatabaseStats struct {
 	TotalWaitTime        time.Duration `json:"total_wait_time"`
 }
 
-// InitMaria Establish a connection using the provided credentials with the mariadb service
-func InitMariaDB(config *config.DBConfig) error {
-	log.Println("Opening Connection to Database")
-	var err error
-
-	// Validation
+func validateMariaDBConfig(config *config.DBConfig) error {
 	if config.DBUser == "" {
 		return eris.New("db username is empty")
 	}
@@ -38,6 +33,19 @@ func InitMariaDB(config *config.DBConfig) error {
 	}
 	if config.DBName == "" {
 		return eris.New("invalid db name")
+	}
+
+	return nil
+}
+
+// InitMaria Establish a connection using the provided credentials with the mariadb service
+func InitMariaDB(config *config.DBConfig) error {
+	log.Println("Opening Connection to Database")
+	var err error
+
+	// Validation
+	if err := validateMariaDBConfig(config); err != nil {
+		return eris.Wrap(err, "invalid MariaDB configuration")
 	}
 
 	dsn := mysql.Config{

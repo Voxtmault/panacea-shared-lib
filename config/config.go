@@ -10,12 +10,15 @@ import (
 )
 
 type DBConfig struct {
-	DBDriver   string
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBName     string
-	DBPassword string
+	DBDriver        string
+	DBHost          string
+	DBPort          string
+	DBUser          string
+	DBName          string
+	DBPassword      string
+	MaxOpenConns    uint
+	MaxIdleConns    uint
+	ConnMaxLifetime uint
 }
 
 type RedisConfig struct {
@@ -81,12 +84,15 @@ func New(envPath string) *AppConfig {
 
 	config = &AppConfig{
 		DBConfig: DBConfig{
-			DBDriver:   getEnv("DB_DRIVER", "mysql"),
-			DBHost:     getEnv("DB_HOST", ""),
-			DBPort:     getEnv("DB_PORT", "3306"),
-			DBUser:     getEnv("DB_USER", ""),
-			DBPassword: getEnv("DB_PASSWORD", ""),
-			DBName:     getEnv("DB_NAME", ""),
+			DBDriver:        getEnv("DB_DRIVER", "mysql"),
+			DBHost:          getEnv("DB_HOST", ""),
+			DBPort:          getEnv("DB_PORT", "3306"),
+			DBUser:          getEnv("DB_USER", ""),
+			DBPassword:      getEnv("DB_PASSWORD", ""),
+			DBName:          getEnv("DB_NAME", ""),
+			MaxOpenConns:    uint(getEnvAsInt("DB_MAX_OPEN_CONNS", 20)),
+			MaxIdleConns:    uint(getEnvAsInt("DB_MAX_IDLE_CONNS", 5)),
+			ConnMaxLifetime: uint(getEnvAsInt("DB_CONN_MAX_LIFETIME", 5)),
 		},
 		RedisConfig: RedisConfig{
 			RedisHost:     getEnv("REDIS_HOST", ""),
@@ -119,7 +125,7 @@ func New(envPath string) *AppConfig {
 		AppMode:     getEnv("APP_MODE", "devs"),
 		AppLanguage: getEnv("APP_LANG", "en"),
 		AppTimezone: getEnv("APP_TIMEZONE", "Asia/Jakarta"),
-		AppPort:     getEnv("APP_PORT", "47000"),
+		AppPort:     getEnv("APP_PORT", ""),
 		AppHost:     getEnv("APP_HOST", ""),
 		AppRoot:     getEnv("APP_ROOT", "/api/v1"),
 		DebugMode:   getEnvAsBool("DEBUG", false),
