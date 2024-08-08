@@ -73,6 +73,13 @@ func listenForMessages() {
 }
 
 func InitWebsocketClient() error {
+	if config.GetConfig().WebsocketConfig.WSURL == "" {
+		return eris.New("Websocket URL not set")
+	}
+	if config.GetConfig().WebsocketConfig.WSApiToken == "" {
+		return eris.New("Websocket API Token not set")
+	}
+
 	// Authenticate as an API
 	headers := http.Header{
 		"api-token": []string{config.GetConfig().WebsocketConfig.WSApiToken},
