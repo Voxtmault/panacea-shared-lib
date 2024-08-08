@@ -51,12 +51,12 @@ func InitMariaDB(config *config.DBConfig) error {
 	dsn := mysql.Config{
 		User:                 config.DBUser,
 		Passwd:               config.DBPassword,
-		AllowNativePasswords: true,
+		AllowNativePasswords: config.AllowNativePasswords,
 		Net:                  "tcp",
 		Addr:                 fmt.Sprintf("%s:%s", config.DBHost, config.DBPort),
 		DBName:               config.DBName,
-		TLSConfig:            "true",
-		MultiStatements:      false,
+		TLSConfig:            config.TSLConfig,
+		MultiStatements:      config.MultiStatements,
 		Params: map[string]string{
 			"charset": "utf8",
 		},
@@ -96,12 +96,12 @@ func GetDBStats() MariaDatabaseStats {
 }
 
 // CloseMaria will close the current database connection, only do this when exiting the program
+//
 // Under normal circumstances, this shouldn't be called by anyone other than main
 func Close() error {
-	err := db.Close()
-	if err != nil {
+	if err := db.Close(); err != nil {
 		return eris.Wrap(err, "Closing DB")
+	} else {
+		return nil
 	}
-
-	return nil
 }

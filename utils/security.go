@@ -27,11 +27,6 @@ const (
 	keySize        = 32 // Key size in bytes
 )
 
-// type JWTClaims struct {
-// 	AccountType string `json:"account_type"`
-// 	jwt.RegisteredClaims
-// }
-
 // Security Utils
 func EncryptAES_CBC(plaintext []byte) (string, error) {
 

@@ -10,15 +10,18 @@ import (
 )
 
 type DBConfig struct {
-	DBDriver        string
-	DBHost          string
-	DBPort          string
-	DBUser          string
-	DBName          string
-	DBPassword      string
-	MaxOpenConns    uint
-	MaxIdleConns    uint
-	ConnMaxLifetime uint
+	DBDriver             string
+	DBHost               string
+	DBPort               string
+	DBUser               string
+	DBName               string
+	DBPassword           string
+	TSLConfig            string // Yes the library actually uses a string instead of a boolean type for this
+	AllowNativePasswords bool
+	MultiStatements      bool
+	MaxOpenConns         uint
+	MaxIdleConns         uint
+	ConnMaxLifetime      uint
 }
 
 type RedisConfig struct {
@@ -29,8 +32,9 @@ type RedisConfig struct {
 }
 
 type WebsocketConfig struct {
-	WSURL      string
-	WSApiToken string
+	WSURL               string
+	WSApiToken          string
+	WSReconnectInterval uint
 }
 
 type LoggingConfig struct {
@@ -84,15 +88,18 @@ func New(envPath string) *AppConfig {
 
 	config = &AppConfig{
 		DBConfig: DBConfig{
-			DBDriver:        getEnv("DB_DRIVER", "mysql"),
-			DBHost:          getEnv("DB_HOST", ""),
-			DBPort:          getEnv("DB_PORT", "3306"),
-			DBUser:          getEnv("DB_USER", ""),
-			DBPassword:      getEnv("DB_PASSWORD", ""),
-			DBName:          getEnv("DB_NAME", ""),
-			MaxOpenConns:    uint(getEnvAsInt("DB_MAX_OPEN_CONNS", 20)),
-			MaxIdleConns:    uint(getEnvAsInt("DB_MAX_IDLE_CONNS", 5)),
-			ConnMaxLifetime: uint(getEnvAsInt("DB_CONN_MAX_LIFETIME", 5)),
+			DBDriver:             getEnv("DB_DRIVER", "mysql"),
+			DBHost:               getEnv("DB_HOST", ""),
+			DBPort:               getEnv("DB_PORT", "3306"),
+			DBUser:               getEnv("DB_USER", ""),
+			DBPassword:           getEnv("DB_PASSWORD", ""),
+			DBName:               getEnv("DB_NAME", ""),
+			TSLConfig:            getEnv("DB_TLS_CONFIG", "true"),
+			AllowNativePasswords: getEnvAsBool("DB_ALLOW_NATIVE_PASSWORDS", true),
+			MultiStatements:      getEnvAsBool("DB_MULTI_STATEMENTS", false),
+			MaxOpenConns:         uint(getEnvAsInt("DB_MAX_OPEN_CONNS", 20)),
+			MaxIdleConns:         uint(getEnvAsInt("DB_MAX_IDLE_CONNS", 5)),
+			ConnMaxLifetime:      uint(getEnvAsInt("DB_CONN_MAX_LIFETIME", 5)),
 		},
 		RedisConfig: RedisConfig{
 			RedisHost:     getEnv("REDIS_HOST", ""),
@@ -101,8 +108,9 @@ func New(envPath string) *AppConfig {
 			RedisDBNum:    uint8(getEnvAsInt("REDIS_DB_NUM", 0)),
 		},
 		WebsocketConfig: WebsocketConfig{
-			WSURL:      getEnv("WS_URL", ""),
-			WSApiToken: getEnv("WS_API_TOKEN", ""),
+			WSURL:               getEnv("WS_URL", ""),
+			WSApiToken:          getEnv("WS_API_TOKEN", ""),
+			WSReconnectInterval: uint(getEnvAsInt("WS_RECONNECT_INTERVAL", 5)),
 		},
 		LoggingConfig: LoggingConfig{
 			ServerLogPath: getEnv("LOG_PATH", "./log/server.log"),
