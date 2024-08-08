@@ -5,6 +5,9 @@ DB_USER ?= user
 DB_PASSWORD ?= password
 DB_NAME ?= db_name
 DB_PORT ?= 3306
+DB_TLS_CONFIG ?= true
+DB_ALLOW_NATIVE_PASSWORDS ?= true
+DB_MULTI_STATEMENTS ?= false
 
 REDIS_HOST ?= redis_host
 REDIS_PORT ?= 6379
@@ -14,6 +17,7 @@ REDIS_EXPIRATION ?= 60 # Minutes
 
 WS_URL ?= ws_url
 WS_TOKEN ?= ws_token
+WS_RECONNECT_INTERVAL ?= 10 # Seconds
 
 AES_KEY ?= key
 JWT_KEY ?= key
@@ -48,6 +52,9 @@ create-env:
 	@echo "DB_PASSWORD=$(DB_PASSWORD)" >> .env
 	@echo "DB_NAME=$(DB_NAME)" >> .env
 	@echo "DB_PORT=$(DB_PORT)" >> .env
+	@echo "DB_TLS_CONFIG=$(DB_TLS_CONFIG)" >> .env
+	@echo "DB_ALLOW_NATIVE_PASSWORDS=$(DB_ALLOW_NATIVE_PASSWORDS)" >> .env
+	@echo "DB_MULTI_STATEMENTS=$(DB_MULTI_STATEMENTS)" >> .env
 	@echo "" >> .env
 	@echo "# Redis Configs" >> .env
 	@echo "REDIS_HOST=$(REDIS_HOST)" >> .env
@@ -59,6 +66,7 @@ create-env:
 	@echo "# Websocket Configs" >> .env
 	@echo "WS_URL=$(WS_URL)" >> .env
 	@echo "WS_TOKEN=$(WS_TOKEN)" >> .env
+	@echo "WS_RECONNECT_INTERVAL=$(WS_RECONNECT_INTERVAL)" >> .env
 	@echo "" >> .env
 	@echo "# Security Config" >> .env
 	@echo "AES_KEY=$(AES_KEY)" >> .env
