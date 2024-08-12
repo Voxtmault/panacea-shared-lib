@@ -120,6 +120,10 @@ func GetDBConnection() *sql.DB {
 	return db
 }
 
+func GetAuthDBConnection() *sql.DB {
+	return authDb
+}
+
 // GetMariaStats
 func GetDBStats() MariaDatabaseStats {
 	return MariaDatabaseStats{
