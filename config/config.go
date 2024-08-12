@@ -16,7 +16,7 @@ type DBConfig struct {
 	DBUser               string
 	DBName               string
 	DBPassword           string
-	TSLConfig            string // Yes the library actually uses a string instead of a boolean type for this
+	TSLConfig            string
 	AllowNativePasswords bool
 	MultiStatements      bool
 	MaxOpenConns         uint
@@ -25,10 +25,11 @@ type DBConfig struct {
 }
 
 type RedisConfig struct {
-	RedisHost     string
-	RedisPort     string
-	RedisPassword string
-	RedisDBNum    uint8
+	RedisHost       string
+	RedisPort       string
+	RedisPassword   string
+	RedisDBNum      uint8
+	RedisExpiration uint
 }
 
 type WebsocketConfig struct {
@@ -102,10 +103,11 @@ func New(envPath string) *AppConfig {
 			ConnMaxLifetime:      uint(getEnvAsInt("DB_CONN_MAX_LIFETIME", 5)),
 		},
 		RedisConfig: RedisConfig{
-			RedisHost:     getEnv("REDIS_HOST", ""),
-			RedisPort:     getEnv("REDIS_PORT", "6378"),
-			RedisPassword: getEnv("REDIS_PASSWORD", ""),
-			RedisDBNum:    uint8(getEnvAsInt("REDIS_DB_NUM", 0)),
+			RedisHost:       getEnv("REDIS_HOST", ""),
+			RedisPort:       getEnv("REDIS_PORT", "6378"),
+			RedisPassword:   getEnv("REDIS_PASSWORD", ""),
+			RedisDBNum:      uint8(getEnvAsInt("REDIS_DB_NUM", 0)),
+			RedisExpiration: uint(getEnvAsInt("REDIS_EXPIRATION", 0)),
 		},
 		WebsocketConfig: WebsocketConfig{
 			WSURL:               getEnv("WS_URL", ""),
@@ -179,15 +181,31 @@ func getEnvAsBool(name string, defaultVal bool) bool {
 	return defaultVal
 }
 
-// Helper to read an environment variable into a string slice or return default value.
-func getEnvAsSlice(name string, defaultVal []string, sep string) []string {
+// Helper to read an environment variable into a slice of a specific type or return default value.
+func getEnvAsSlice[T any](name string, defaultVal []T, sep string) []T {
 	valStr := getEnv(name, "")
 
 	if valStr == "" {
 		return defaultVal
 	}
 
-	val := strings.Split(valStr, sep)
+	vals := strings.Split(valStr, sep)
+	result := make([]T, len(vals))
 
-	return val
+	for i, v := range vals {
+		switch any(result).(type) {
+		case []string:
+			result[i] = any(v).(T)
+		case []int:
+			intVal, _ := strconv.Atoi(v)
+			result[i] = any(intVal).(T)
+		case []bool:
+			boolVal, _ := strconv.ParseBool(v)
+			result[i] = any(boolVal).(T)
+		default:
+			return defaultVal
+		}
+	}
+
+	return result
 }
