@@ -64,7 +64,8 @@ type SSLConfig struct {
 }
 
 type AppConfig struct {
-	DBConfig
+	Data DBConfig
+	Auth DBConfig
 	RedisConfig
 	WebsocketConfig
 	LoggingConfig
@@ -88,7 +89,7 @@ func New(envPath string) *AppConfig {
 	}
 
 	config = &AppConfig{
-		DBConfig: DBConfig{
+		Data: DBConfig{
 			DBDriver:             getEnv("DB_DRIVER", "mysql"),
 			DBHost:               getEnv("DB_HOST", ""),
 			DBPort:               getEnv("DB_PORT", "3306"),
@@ -101,6 +102,20 @@ func New(envPath string) *AppConfig {
 			MaxOpenConns:         uint(getEnvAsInt("DB_MAX_OPEN_CONNS", 20)),
 			MaxIdleConns:         uint(getEnvAsInt("DB_MAX_IDLE_CONNS", 5)),
 			ConnMaxLifetime:      uint(getEnvAsInt("DB_CONN_MAX_LIFETIME", 5)),
+		},
+		Auth: DBConfig{
+			DBDriver:             getEnv("AUTH_DB_DRIVER", "mysql"),
+			DBHost:               getEnv("AUTH_DB_HOST", ""),
+			DBPort:               getEnv("AUTH_DB_PORT", "3306"),
+			DBUser:               getEnv("AUTH_DB_USER", ""),
+			DBPassword:           getEnv("AUTH_DB_PASSWORD", ""),
+			DBName:               getEnv("AUTH_DB_NAME", ""),
+			TSLConfig:            getEnv("AUTH_DB_TLS_CONFIG", "true"),
+			AllowNativePasswords: getEnvAsBool("AUTH_DB_ALLOW_NATIVE_PASSWORDS", true),
+			MultiStatements:      getEnvAsBool("AUTH_DB_MULTI_STATEMENTS", false),
+			MaxOpenConns:         uint(getEnvAsInt("AUTH_DB_MAX_OPEN_CONNS", 20)),
+			MaxIdleConns:         uint(getEnvAsInt("AUTH_DB_MAX_IDLE_CONNS", 5)),
+			ConnMaxLifetime:      uint(getEnvAsInt("AUTH_DB_CONN_MAX_LIFETIME", 5)),
 		},
 		RedisConfig: RedisConfig{
 			RedisHost:       getEnv("REDIS_HOST", ""),
