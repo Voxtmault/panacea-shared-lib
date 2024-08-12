@@ -12,6 +12,7 @@ import (
 )
 
 var db *sql.DB
+var dbConnections = make(map[string]*sql.DB)
 
 type MariaDatabaseStats struct {
 	OpenConnections      int           `json:"open_connections"`
