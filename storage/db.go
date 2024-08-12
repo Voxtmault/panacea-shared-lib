@@ -11,8 +11,10 @@ import (
 	"github.com/voxtmault/panacea-shared-lib/config"
 )
 
-var db *sql.DB
-var dbConnections = make(map[string]*sql.DB)
+var (
+	db     *sql.DB
+	authDb *sql.DB
+)
 
 type MariaDatabaseStats struct {
 	OpenConnections      int           `json:"open_connections"`
@@ -40,13 +42,13 @@ func validateMariaDBConfig(config *config.DBConfig) error {
 }
 
 // InitMaria Establish a connection using the provided credentials with the mariadb service
-func InitMariaDB(config *config.DBConfig) error {
+func InitMariaDB(config *config.DBConfig, authConfig *config.DBConfig) error {
 	log.Println("Opening Connection to Database")
 	var err error
 
 	// Validation
 	if err := validateMariaDBConfig(config); err != nil {
-		return eris.Wrap(err, "invalid MariaDB configuration")
+		return eris.Wrap(err, "invalid Data MariaDB configuration")
 	}
 
 	dsn := mysql.Config{
@@ -75,6 +77,39 @@ func InitMariaDB(config *config.DBConfig) error {
 	err = db.Ping()
 	if err != nil {
 		return eris.Wrap(err, "Error verifying database connection")
+	}
+
+	// Init for Auth DB
+	if err = validateMariaDBConfig(authConfig); err != nil {
+		return eris.Wrap(err, "invalid Auth MariaDB configuration")
+	}
+
+	dsn = mysql.Config{
+		User:                 authConfig.DBUser,
+		Passwd:               authConfig.DBPassword,
+		AllowNativePasswords: authConfig.AllowNativePasswords,
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%s:%s", authConfig.DBHost, authConfig.DBPort),
+		DBName:               authConfig.DBName,
+		TLSConfig:            authConfig.TSLConfig,
+		MultiStatements:      authConfig.MultiStatements,
+		Params: map[string]string{
+			"charset": "utf8",
+		},
+	}
+
+	authDb, err = sql.Open(authConfig.DBDriver, dsn.FormatDSN())
+	if err != nil {
+		return eris.Wrap(err, "Opening auth MySQL/MariaDB Connection")
+	}
+
+	authDb.SetMaxOpenConns(20)
+	authDb.SetMaxIdleConns(5)
+	authDb.SetConnMaxLifetime(time.Second * 5)
+
+	err = authDb.Ping()
+	if err != nil {
+		return eris.Wrap(err, "Error verifying auth database connection")
 	}
 
 	log.Println("Successfully opened database connection !")
