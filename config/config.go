@@ -54,6 +54,8 @@ type SecurityConfig struct {
 	// JWT life span in hour(s), default to 1 hour
 	JWTLifeSpan uint32
 
+	JWTIssuer string
+
 	// Password minimal length, default to 8
 	PasswordMinLength uint32
 }
@@ -141,6 +143,7 @@ func New(envPath string) *AppConfig {
 			AESKey:            getEnv("AES_KEY", ""),
 			JWTKey:            getEnv("JWT_KEY", ""),
 			JWTLifeSpan:       uint32(getEnvAsInt("JWT_LIFE_SPAN", 1)),
+			JWTIssuer:         getEnv("JWT_ISSUER", "panacea"),
 			PasswordMinLength: uint32(getEnvAsInt("PASSWORD_MIN_LENGTH", 8)),
 		},
 		SSLConfig: SSLConfig{
