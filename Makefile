@@ -42,6 +42,14 @@ LOG_MAX_BACKUP ?= 5
 LOG_MAX_AGE ?= 30
 LOG_COMPRESS ?= true
 
+SMTP_HOST ?= smtp_host
+SMTP_PORT ?= 587
+SMTP_USER ?= smtp_user
+SMTP_PASSWORD ?= smtp_password
+
+MAIL_SERVICE_ADR ?= mail_service_adr
+AUTH_SERVICE_ADR ?= auth_service_adr
+
 # Target to create .env file
 create-env:
 	@echo "Creating .env file..."
@@ -93,6 +101,16 @@ create-env:
 	@echo "LOG_MAX_BACKUP=$(LOG_MAX_BACKUP)" >> .env
 	@echo "LOG_MAX_AGE=$(LOG_MAX_AGE)" >> .env
 	@echo "LOG_COMPRESS=$(LOG_COMPRESS)" >> .env
+	@echo "" >> .env
+	@echo "# SMTP Configs" >> .env
+	@echo "SMTP_HOST=$(SMTP_HOST)" >> .env
+	@echo "SMTP_PORT=$(SMTP_PORT)" >> .env
+	@echo "SMTP_USER=$(SMTP_USER)" >> .env
+	@echo "SMTP_PASSWORD=$(SMTP_PASSWORD)" >> .env
+	@echo "" >> .env
+	@echo "# Service Address" >> .env
+	@echo "MAIL_SERVICE_ADR=$(MAIL_SERVICE_ADR)" >> .env
+	@echo "AUTH_SERVICE_ADR=$(AUTH_SERVICE_ADR)" >> .env
 	@echo ".env file created successfully."
 
 # Default target
