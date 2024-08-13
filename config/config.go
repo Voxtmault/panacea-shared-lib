@@ -9,6 +9,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type SMTPConfig struct {
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUsername string
+	SMTPPassword string
+}
+
 type DBConfig struct {
 	DBDriver             string
 	DBHost               string
@@ -63,6 +70,15 @@ type SSLConfig struct {
 	CertPath string
 }
 
+// Shifter - Backend Config
+type MailServiceConfig struct {
+	MailServiceAdr string
+}
+
+type AuthServiceConfig struct {
+	AuthServiceAdr string
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -70,6 +86,9 @@ type AppConfig struct {
 	LoggingConfig
 	SecurityConfig
 	SSLConfig
+	SMTPConfig
+	MailServiceConfig
+	AuthServiceConfig
 	AppMode     string
 	AppLanguage string
 	AppTimezone string
@@ -109,6 +128,12 @@ func New(envPath string) *AppConfig {
 			RedisDBNum:      uint8(getEnvAsInt("REDIS_DB_NUM", 0)),
 			RedisExpiration: uint(getEnvAsInt("REDIS_EXPIRATION", 0)),
 		},
+		SMTPConfig: SMTPConfig{
+			SMTPHost:     getEnv("SMTP_HOST", ""),
+			SMTPPort:     getEnvAsInt("SMTP_PORT", 587),
+			SMTPUsername: getEnv("SMTP_USERNAME", ""),
+			SMTPPassword: getEnv("SMTP_PASSWORD", ""),
+		},
 		WebsocketConfig: WebsocketConfig{
 			WSURL:               getEnv("WS_URL", ""),
 			WSApiToken:          getEnv("WS_API_TOKEN", ""),
@@ -131,6 +156,12 @@ func New(envPath string) *AppConfig {
 		SSLConfig: SSLConfig{
 			KeyPath:  getEnv("KEY_PATH", ""),
 			CertPath: getEnv("CERT_PATH", ""),
+		},
+		MailServiceConfig: MailServiceConfig{
+			MailServiceAdr: getEnv("MAIL_SERVICE_ADR", ""),
+		},
+		AuthServiceConfig: AuthServiceConfig{
+			AuthServiceAdr: getEnv("AUTH_SERVICE_ADR", ""),
 		},
 		AppMode:     getEnv("APP_MODE", "devs"),
 		AppLanguage: getEnv("APP_LANG", "en"),
