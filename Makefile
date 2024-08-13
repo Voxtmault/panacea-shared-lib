@@ -42,6 +42,13 @@ LOG_MAX_BACKUP ?= 5
 LOG_MAX_AGE ?= 30
 LOG_COMPRESS ?= true
 
+DRIVER_MANUAL_BOOK ?= driver_manual_book
+AGENT_MANUAL_BOOK ?= agent_manual_book
+KORLAP_MANUAL_BOOK ?= korlap_manual_book
+SHUTTLE_DRIVER_MANUAL_BOOK ?= shuttle_driver_manual_book
+OPERATOR_MANUAL_BOOK ?= operator_manual_book
+ADMINISTRATOR_MANUAL_BOOK ?= administrator_manual_book
+
 # Target to create .env file
 create-env:
 	@echo "Creating .env file..."
@@ -93,6 +100,14 @@ create-env:
 	@echo "LOG_MAX_BACKUP=$(LOG_MAX_BACKUP)" >> .env
 	@echo "LOG_MAX_AGE=$(LOG_MAX_AGE)" >> .env
 	@echo "LOG_COMPRESS=$(LOG_COMPRESS)" >> .env
+	@echo "" >> .env
+	@echo "# Manual Book Configs" >> .env
+	@echo "DRIVER_MANUAL_BOOK=$(DRIVER_MANUAL_BOOK)" >> .env
+	@echo "AGENT_MANUAL_BOOK=$(AGENT_MANUAL_BOOK)" >> .env
+	@echo "KORLAP_MANUAL_BOOK=$(KORLAP_MANUAL_BOOK)" >> .env
+	@echo "SHUTTLE_DRIVER_MANUAL_BOOK=$(SHUTTLE_DRIVER_MANUAL_BOOK)" >> .env
+	@echo "OPERATOR_MANUAL_BOOK=$(OPERATOR_MANUAL_BOOK)" >> .env
+	@echo "ADMINISTRATOR_MANUAL_BOOK=$(ADMINISTRATOR_MANUAL_BOOK)" >> .env
 	@echo ".env file created successfully."
 
 # Default target

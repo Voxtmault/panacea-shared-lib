@@ -63,6 +63,15 @@ type SSLConfig struct {
 	CertPath string
 }
 
+type ManualBookLinks struct {
+	DriverManualBook        string
+	AgentManualBook         string
+	KorlapManualBook        string
+	ShuttleDriverManualBook string
+	OperatorManualBook      string
+	AdministratorManualBook string
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -70,6 +79,7 @@ type AppConfig struct {
 	LoggingConfig
 	SecurityConfig
 	SSLConfig
+	ManualBookLinks
 	AppMode     string
 	AppLanguage string
 	AppTimezone string
@@ -131,6 +141,14 @@ func New(envPath string) *AppConfig {
 		SSLConfig: SSLConfig{
 			KeyPath:  getEnv("KEY_PATH", ""),
 			CertPath: getEnv("CERT_PATH", ""),
+		},
+		ManualBookLinks: ManualBookLinks{
+			DriverManualBook:        getEnv("DRIVER_MANUAL_BOOK", "https://youtu.be/dQw4w9WgXcQ"),
+			AgentManualBook:         getEnv("AGENT_MANUAL_BOOK", "https://youtu.be/dQw4w9WgXcQ"),
+			KorlapManualBook:        getEnv("KORLAP_MANUAL_BOOK", "https://youtu.be/dQw4w9WgXcQ"),
+			ShuttleDriverManualBook: getEnv("SHUTTLE_DRIVER_MANUAL_BOOK", "https://youtu.be/dQw4w9WgXcQ"),
+			OperatorManualBook:      getEnv("OPERATOR_MANUAL_BOOK", "https://youtu.be/dQw4w9WgXcQ"),
+			AdministratorManualBook: getEnv("ADMINISTRATOR_MANUAL_BOOK", "https://youtu.be/dQw4w9WgXcQ"),
 		},
 		AppMode:     getEnv("APP_MODE", "devs"),
 		AppLanguage: getEnv("APP_LANG", "en"),
