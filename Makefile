@@ -42,6 +42,11 @@ LOG_MAX_BACKUP ?= 5
 LOG_MAX_AGE ?= 30
 LOG_COMPRESS ?= true
 
+SMTP_HOST ?= smtp_host
+SMTP_PORT ?= 587
+SMTP_USER ?= smtp_user
+SMTP_PASSWORD ?= smtp_password
+
 DRIVER_MANUAL_BOOK ?= driver_manual_book
 AGENT_MANUAL_BOOK ?= agent_manual_book
 KORLAP_MANUAL_BOOK ?= korlap_manual_book
@@ -100,6 +105,12 @@ create-env:
 	@echo "LOG_MAX_BACKUP=$(LOG_MAX_BACKUP)" >> .env
 	@echo "LOG_MAX_AGE=$(LOG_MAX_AGE)" >> .env
 	@echo "LOG_COMPRESS=$(LOG_COMPRESS)" >> .env
+	@echo "" >> .env
+	@echo "# SMTP Configs" >> .env
+	@echo "SMTP_HOST=$(SMTP_HOST)" >> .env
+	@echo "SMTP_PORT=$(SMTP_PORT)" >> .env
+	@echo "SMTP_USER=$(SMTP_USER)" >> .env
+	@echo "SMTP_PASSWORD=$(SMTP_PASSWORD)" >> .env
 	@echo "" >> .env
 	@echo "# Manual Book Configs" >> .env
 	@echo "DRIVER_MANUAL_BOOK=$(DRIVER_MANUAL_BOOK)" >> .env

@@ -9,6 +9,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type SMTPConfig struct {
+	SMTPHost     string
+	SMTPPort     int
+	SMTPUsername string
+	SMTPPassword string
+}
+
 type DBConfig struct {
 	DBDriver             string
 	DBHost               string
@@ -79,6 +86,7 @@ type AppConfig struct {
 	LoggingConfig
 	SecurityConfig
 	SSLConfig
+	SMTPConfig
 	ManualBookLinks
 	AppMode     string
 	AppLanguage string
@@ -141,6 +149,12 @@ func New(envPath string) *AppConfig {
 		SSLConfig: SSLConfig{
 			KeyPath:  getEnv("KEY_PATH", ""),
 			CertPath: getEnv("CERT_PATH", ""),
+		},
+		SMTPConfig: SMTPConfig{
+			SMTPHost:     getEnv("SMTP_HOST", ""),
+			SMTPPort:     getEnvAsInt("SMTP_PORT", 587),
+			SMTPUsername: getEnv("SMTP_USERNAME", ""),
+			SMTPPassword: getEnv("SMTP_PASSWORD", ""),
 		},
 		ManualBookLinks: ManualBookLinks{
 			DriverManualBook:        getEnv("DRIVER_MANUAL_BOOK", "https://youtu.be/dQw4w9WgXcQ"),
