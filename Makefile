@@ -49,6 +49,7 @@ SMTP_PASSWORD ?= smtp_password
 
 MAIL_SERVICE_ADR ?= mail_service_adr
 AUTH_SERVICE_ADR ?= auth_service_adr
+WALLET_SERVICE_ADR ?= wallet_service_adr
 
 # Target to create .env file
 create-env:
@@ -111,6 +112,7 @@ create-env:
 	@echo "# Service Address" >> .env
 	@echo "MAIL_SERVICE_ADR=$(MAIL_SERVICE_ADR)" >> .env
 	@echo "AUTH_SERVICE_ADR=$(AUTH_SERVICE_ADR)" >> .env
+	@echo "WALLET_SERVICE_ADR=$(WALLET_SERVICE_ADR)" >> .env
 	@echo ".env file created successfully."
 
 # Default target

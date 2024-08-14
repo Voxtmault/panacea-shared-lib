@@ -79,6 +79,10 @@ type AuthServiceConfig struct {
 	AuthServiceAdr string
 }
 
+type WalletServiceConfig struct {
+	WalletServiceAdr string
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -89,6 +93,7 @@ type AppConfig struct {
 	SMTPConfig
 	MailServiceConfig
 	AuthServiceConfig
+	WalletServiceConfig
 	AppMode     string
 	AppLanguage string
 	AppTimezone string
@@ -162,6 +167,9 @@ func New(envPath string) *AppConfig {
 		},
 		AuthServiceConfig: AuthServiceConfig{
 			AuthServiceAdr: getEnv("AUTH_SERVICE_ADR", ""),
+		},
+		WalletServiceConfig: WalletServiceConfig{
+			WalletServiceAdr: getEnv("WALLET_SERVICE_ADR", ""),
 		},
 		AppMode:     getEnv("APP_MODE", "devs"),
 		AppLanguage: getEnv("APP_LANG", "en"),
