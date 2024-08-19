@@ -70,7 +70,7 @@ type SSLConfig struct {
 	CertPath string
 }
 
-// Shifter - Backend Config
+// Shifter Services
 type MailServiceConfig struct {
 	MailServiceAdr string
 }
@@ -79,8 +79,18 @@ type AuthServiceConfig struct {
 	AuthServiceAdr string
 }
 
-type WalletServiceConfig struct {
-	WalletServiceAdr string
+type GeoApifyConfig struct {
+	APIUrl string
+	APIKey string
+}
+
+type GooglePlacesConfig struct {
+	GoogleAPIKey       string
+	GoogleSearchRadius uint
+}
+
+type SearchConfig struct {
+	SearchRadius int
 }
 
 type AppConfig struct {
@@ -93,7 +103,9 @@ type AppConfig struct {
 	SMTPConfig
 	MailServiceConfig
 	AuthServiceConfig
-	WalletServiceConfig
+	GeoApifyConfig
+	GooglePlacesConfig
+	SearchConfig
 	AppMode     string
 	AppLanguage string
 	AppTimezone string
@@ -168,8 +180,16 @@ func New(envPath string) *AppConfig {
 		AuthServiceConfig: AuthServiceConfig{
 			AuthServiceAdr: getEnv("AUTH_SERVICE_ADR", ""),
 		},
-		WalletServiceConfig: WalletServiceConfig{
-			WalletServiceAdr: getEnv("WALLET_SERVICE_ADR", ""),
+		GeoApifyConfig: GeoApifyConfig{
+			APIUrl: getEnv("GEOAPIFY_LINK", ""),
+			APIKey: getEnv("GEAPIFY_API_TOKEN", ""),
+		},
+		GooglePlacesConfig: GooglePlacesConfig{
+			GoogleAPIKey:       getEnv("GOOGLE_PLACES_API_TOKEN", ""),
+			GoogleSearchRadius: uint(getEnvAsInt("GOOGLE_SEARCH_RADIUS", 50000)),
+		},
+		SearchConfig: SearchConfig{
+			SearchRadius: getEnvAsInt("SEARCH_BIAS_RADIUS", 21000),
 		},
 		AppMode:     getEnv("APP_MODE", "devs"),
 		AppLanguage: getEnv("APP_LANG", "en"),
