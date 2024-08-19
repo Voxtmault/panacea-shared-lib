@@ -49,7 +49,14 @@ SMTP_PASSWORD ?= smtp_password
 
 MAIL_SERVICE_ADR ?= mail_service_adr
 AUTH_SERVICE_ADR ?= auth_service_adr
-WALLET_SERVICE_ADR ?= wallet_service_adr
+
+GEOAPIFY_KEY ?= geoapify_key
+GEOAPIFY_URL ?= geoapify_url
+
+GOOGLE_PLACES_API_KEY ?= google_places_api_key
+GOOGLE_SEARCH_RADIUS ?= 1000
+
+SEARCH_RADIUS ?= 1000
 
 # Target to create .env file
 create-env:
@@ -113,6 +120,14 @@ create-env:
 	@echo "MAIL_SERVICE_ADR=$(MAIL_SERVICE_ADR)" >> .env
 	@echo "AUTH_SERVICE_ADR=$(AUTH_SERVICE_ADR)" >> .env
 	@echo "WALLET_SERVICE_ADR=$(WALLET_SERVICE_ADR)" >> .env
+	@echo "" >> .env
+	@echo "# Geopify Search Address" >> .env
+	@echo "GEOAPIFY_KEY=$(GEOAPIFY_KEY)" >> .env
+	@echo "GEOAPIFY_URL=$(GEOAPIFY_URL)" >> .env
+	@echo "" >> .env
+	@echo "# Google Search Address" >> .env
+	@echo "GOOGLE_PLACES_API_KEY=$(GOOGLE_PLACES_API_KEY)" >> .env
+	@echo "GOOGLE_SEARCH_RADIUS=$(GOOGLE_SEARCH_RADIUS)" >> .env
 	@echo ".env file created successfully."
 
 # Default target
