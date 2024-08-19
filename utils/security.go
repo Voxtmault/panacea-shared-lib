@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math/big"
 
 	"golang.org/x/crypto/pbkdf2"
 
@@ -20,11 +19,8 @@ import (
 )
 
 const (
-	characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+,.?/:;{}[]~"
 	// Constants for PBKDF2 parameters
-	saltSize       = 16 // You can adjust the salt size as needed
-	iterationCount = 10000
-	keySize        = 32 // Key size in bytes
+	keySize = 32 // Key size in bytes
 )
 
 // Security Utils
@@ -114,16 +110,15 @@ func pkcs7Unpadding(input []byte) ([]byte, error) {
 }
 
 // Password Utils
-func GenerateRandomPassword(length int) string {
-	charLength := big.NewInt(int64(len(characters)))
-	password := make([]byte, length)
-
-	for i := 0; i < length; i++ {
-		randomIndex, _ := rand.Int(rand.Reader, charLength)
-		password[i] = characters[randomIndex.Int64()]
+func GenerateRandomPassword(length int) (string, error) {
+	randomBytes := make([]byte, length)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return "", err
 	}
 
-	return string(password)
+	password := base64.URLEncoding.EncodeToString(randomBytes)
+	return password[:length], nil
 }
 
 // Password Storing Utils
@@ -137,17 +132,26 @@ func hexDecode(hexStr string) ([]byte, error) {
 	return data, nil
 }
 
+func generateSalt(length int) ([]byte, error) {
+	salt := make([]byte, length)
+	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
+		return nil, err
+	}
+
+	return salt, nil
+}
+
 // HashPassword generates a PBKDF2 hash of the password and returns the hash and salt.
 func HashPassword(password string) (string, string, error) {
 	// Generate a random salt
-	salt := make([]byte, saltSize)
-	_, err := rand.Read(salt)
+	saltLength := sha256.New().Size()
+	salt, err := generateSalt(saltLength)
 	if err != nil {
 		return "", "", err
 	}
 
 	// Compute the PBKDF2 hash of the password using the salt
-	hashedPassword := pbkdf2.Key([]byte(password), salt, iterationCount, keySize, sha256.New)
+	hashedPassword := pbkdf2.Key([]byte(password), salt, 4096, keySize, sha256.New)
 
 	// Encode the salt and hash as hexadecimal strings
 	saltHex := fmt.Sprintf("%x", salt)
@@ -163,7 +167,7 @@ func VerifyPassword(password, salt, storedHash string) bool {
 	storedHashBytes, _ := hexDecode(storedHash)
 
 	// Compute the PBKDF2 hash of the input password using the stored salt
-	computedHash := pbkdf2.Key([]byte(password), saltBytes, iterationCount, keySize, sha256.New)
+	computedHash := pbkdf2.Key([]byte(password), saltBytes, 4096, keySize, sha256.New)
 
 	// Use subtle.ConstantTimeCompare to compare the computed hash with the stored hash
 	return subtle.ConstantTimeCompare(computedHash, storedHashBytes) == 1
