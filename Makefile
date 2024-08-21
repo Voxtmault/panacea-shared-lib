@@ -19,6 +19,12 @@ WS_URL ?= ws_url
 WS_TOKEN ?= ws_token
 WS_RECONNECT_INTERVAL ?= 10 # Seconds
 
+PONG_WAIT ?= 10
+PING_INTERVAL ?= 9
+AUTH_TIMEOUT ?= 5
+READ_BUFFER_SIZE ?= 1024
+WRITE_BUFFER_SIZE ?= 1024
+
 AES_KEY ?= key
 JWT_KEY ?= key
 JWT_LIFE_SPAN ?= 1 # Day
@@ -76,6 +82,13 @@ create-env:
 	@echo "WS_URL=$(WS_URL)" >> .env
 	@echo "WS_TOKEN=$(WS_TOKEN)" >> .env
 	@echo "WS_RECONNECT_INTERVAL=$(WS_RECONNECT_INTERVAL)" >> .env
+	@echo "" >> .env
+	@echo "# Websocket Core Configs" >> .env
+	@echo "PONG_WAIT=$(PONG_WAIT)" >> .env
+	@echo "PING_INTERVAL=$(PING_INTERVAL)" >> .env
+	@echo "AUTH_TIMEOUT=$(AUTH_TIMEOUT)" >> .env
+	@echo "READ_BUFFER_SIZE=$(READ_BUFFER_SIZE)" >> .env
+	@echo "WRITE_BUFFER_SIZE=$(WRITE_BUFFER_SIZE)" >> .env
 	@echo "" >> .env
 	@echo "# Security Config" >> .env
 	@echo "AES_KEY=$(AES_KEY)" >> .env
