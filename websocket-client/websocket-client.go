@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/voxtmault/panacea-shared-lib/config"
+	"github.com/voxtmault/panacea-shared-lib/websocket-client/types"
 
 	"github.com/gorilla/websocket"
 	"github.com/rotisserie/eris"
@@ -116,7 +117,7 @@ func GetWSConn() *websocket.Conn {
 	return conn
 }
 
-func SendMessage(ctx context.Context, messageType string, message interface{}) error {
+func SendMessage(ctx context.Context, messageType types.EventList, message interface{}) error {
 
 	var msg Event
 	var err error
