@@ -82,7 +82,7 @@ func InitWebsocketClient() error {
 
 	// Authenticate as an API
 	headers := http.Header{
-		"api-token": []string{config.GetConfig().WebsocketConfig.WSApiToken},
+		"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
 	}
 
 	// Establish WebSocket connection
@@ -95,6 +95,7 @@ func InitWebsocketClient() error {
 	// Start a goroutine to listen for messages from the WebSocket server
 	go listenForMessages()
 
+	slog.Info("Successfully Connected To Websocket Server")
 	return nil
 }
 
