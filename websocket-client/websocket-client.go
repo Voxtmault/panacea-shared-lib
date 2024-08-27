@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/voxtmault/panacea-shared-lib/config"
+	"github.com/voxtmault/panacea-shared-lib/websocket-client/types"
 
 	"github.com/gorilla/websocket"
 	"github.com/rotisserie/eris"
@@ -82,7 +83,7 @@ func InitWebsocketClient() error {
 
 	// Authenticate as an API
 	headers := http.Header{
-		"api-token": []string{config.GetConfig().WebsocketConfig.WSApiToken},
+		"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
 	}
 
 	// Establish WebSocket connection
@@ -95,6 +96,7 @@ func InitWebsocketClient() error {
 	// Start a goroutine to listen for messages from the WebSocket server
 	go listenForMessages()
 
+	slog.Info("Successfully Connected To Websocket Server")
 	return nil
 }
 
@@ -115,7 +117,7 @@ func GetWSConn() *websocket.Conn {
 	return conn
 }
 
-func SendMessage(ctx context.Context, messageType string, message interface{}) error {
+func SendMessage(ctx context.Context, messageType types.EventList, message interface{}) error {
 
 	var msg Event
 	var err error
