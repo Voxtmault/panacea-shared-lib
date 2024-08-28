@@ -38,7 +38,9 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 
 	fileReader, err := file.Open()
 	if err != nil {
-		gormTx.Rollback()
+		if tx == nil {
+			gormTx.Rollback()
+		}
 		return err
 	}
 	defer fileReader.Close()
@@ -46,7 +48,9 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 	// Calculate the file hash
 	hasher := sha256.New()
 	if _, err = io.Copy(hasher, fileReader); err != nil {
-		gormTx.Rollback()
+		if tx == nil {
+			gormTx.Rollback()
+		}
 		return err
 	}
 
@@ -62,33 +66,42 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 
 	result := gormTx.Create(&media)
 	if result.Error != nil {
-		gormTx.Rollback()
+		if tx == nil {
+			gormTx.Rollback()
+		}
 		return result.Error
 	}
 
 	// Re-open the file reader to read the file data
 	fileReader, err = file.Open()
 	if err != nil {
-		gormTx.Rollback()
+		if tx == nil {
+			gormTx.Rollback()
+		}
 		return err
 	}
 	defer fileReader.Close()
 
 	fileData, err := io.ReadAll(fileReader)
 	if err != nil {
-		gormTx.Rollback()
+		if tx == nil {
+			gormTx.Rollback()
+		}
 		return err
 	}
 
 	// Save to the designated folder
 	if err = SaveFile(designatedFolder, fileData); err != nil {
-		gormTx.Rollback()
+		if tx == nil {
+			gormTx.Rollback()
+		}
 		return err
 	}
 
 	if tx == nil {
 		// Commit the GORM transaction if no external transaction is provided
 		if err := gormTx.Commit().Error; err != nil {
+			gormTx.Rollback()
 			return err
 		}
 	}
