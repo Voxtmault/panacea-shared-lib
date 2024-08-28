@@ -1,6 +1,10 @@
 package files
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 type File struct {
 	Filename  string `json:"filename" validate:"required" example:"filename.ext"`
@@ -11,12 +15,12 @@ type File struct {
 }
 
 type Media struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	IDMediaType uint      `json:"id_media_type" gorm:"index;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;foreignKey:IDMediaType;references:ID"`
-	RefID       uint      `json:"ref_id" gorm:"index"`
-	SourceTable string    `json:"source_table" gorm:"index"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	DeletedAt   time.Time `json:"deleted_at" gorm:"index"`
+	ID          uint           `json:"id" gorm:"primaryKey"`
+	IDMediaType uint           `json:"id_media_type" gorm:"index;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;foreignKey:IDMediaType;references:ID"`
+	RefID       uint           `json:"ref_id" gorm:"index"`
+	SourceTable string         `json:"source_table" gorm:"index"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 	File
 }
