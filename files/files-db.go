@@ -52,15 +52,14 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 	}
 
 	fileInfo.HashValue = hex.EncodeToString(hasher.Sum(nil))
-	designatedFolder, fileInfo.MIMEType = getFileExtension(file.Filename)
-
-	designatedFolder = fmt.Sprintf("%s/%s/%s", config.FileRootPath, designatedFolder, file.Filename)
 
 	media := Media{
 		RefID:       refId,
 		SourceTable: refTable,
 		File:        fileInfo,
 	}
+	designatedFolder, media.IDMediaType, fileInfo.MIMEType = getFileExtension(file.Filename)
+	designatedFolder = fmt.Sprintf("%s/%s/%s", config.FileRootPath, designatedFolder, file.Filename)
 
 	result := gormTx.Create(&media)
 
@@ -103,27 +102,34 @@ func UpdateInDB() {
 
 }
 
-// getFileExtensions returns the designated folder and mime type based on the file extension
-func getFileExtension(filename string) (string, string) {
+// getFileExtensions returns the designated folder, media type id, and the mime type based on the file extension
+func getFileExtension(filename string) (string, uint, string) {
 	// Get file extension
 	fileExt := filepath.Ext(filename)
 	mimeType := mime.TypeByExtension(fileExt)
 
 	var designatedFolder string
+	var typeId uint
 	switch strings.Split(mimeType, "/")[0] {
 	case "image":
 		designatedFolder = "photos"
-	case "application":
-		designatedFolder = "applications" // Including PPTs, PDFs, Docs, etc
-	case "video":
-		designatedFolder = "videos"
+		typeId = 1
 	case "audio":
 		designatedFolder = "audios"
+		typeId = 2
+	case "video":
+		designatedFolder = "videos"
+		typeId = 3
 	case "text":
-		designatedFolder = "plaintexts" // Including .txt and other plain text files
+		designatedFolder = "texts" // Including .txt and other plain text files
+		typeId = 4
+	case "application":
+		designatedFolder = "applications" // Including PPTs, PDFs, Docs, etc
+		typeId = 5
 	default:
 		designatedFolder = "others" // This folder is for files that types are not filtered by the switch
+		typeId = 6
 	}
 
-	return designatedFolder, mimeType
+	return designatedFolder, typeId, mimeType
 }
