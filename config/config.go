@@ -63,6 +63,11 @@ type SSLConfig struct {
 	CertPath string
 }
 
+type FileHandlingConfig struct {
+	MaxFileSize  uint
+	FileRootPath string
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -70,6 +75,7 @@ type AppConfig struct {
 	LoggingConfig
 	SecurityConfig
 	SSLConfig
+	FileHandlingConfig
 	AppMode     string
 	AppLanguage string
 	AppTimezone string
@@ -131,6 +137,10 @@ func New(envPath string) *AppConfig {
 		SSLConfig: SSLConfig{
 			KeyPath:  getEnv("KEY_PATH", ""),
 			CertPath: getEnv("CERT_PATH", ""),
+		},
+		FileHandlingConfig: FileHandlingConfig{
+			MaxFileSize:  uint(getEnvAsInt("MAX_FILE_SIZE", 1024)),
+			FileRootPath: getEnv("FILE_ROOT_PATH", "./files"),
 		},
 		AppMode:     getEnv("APP_MODE", "devs"),
 		AppLanguage: getEnv("APP_LANG", "en"),
