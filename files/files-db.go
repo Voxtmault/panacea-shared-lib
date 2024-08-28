@@ -14,24 +14,20 @@ import (
 	"strings"
 
 	"github.com/voxtmault/panacea-shared-lib/config"
-	"github.com/voxtmault/panacea-shared-lib/storage"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file *multipart.FileHeader) error {
-	// Get the ORM Connection
-	gConn := storage.GetGORMMariaDB()
-	config := config.GetConfig().FileHandlingConfig
-
-	var gormTx *gorm.DB
-	if tx != nil {
-		// If tx is provided, use it to create a GORM transaction
-		gormTx = gConn.WithContext(ctx).Session(&gorm.Session{NewDB: true}).Begin()
-		gormTx = gormTx.Set("gorm:db", tx)
-	} else {
-		// Otherwise, start a new GORM transaction
-		gormTx = gConn.WithContext(ctx).Begin()
+	gormTx, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: tx,
+	}), &gorm.Config{})
+	if err != nil {
+		tx.Rollback()
+		return err
 	}
+
+	config := config.GetConfig().FileHandlingConfig
 
 	// Save the file entry to the database
 	fileInfo := File{}
@@ -63,7 +59,7 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 		File:        fileInfo,
 	}
 	designatedFolder, media.IDMediaType, fileInfo.MIMEType = getFileExtension(file.Filename)
-	designatedFolder = fmt.Sprintf("%s/%s/%s-%d%s", config.FileRootPath, designatedFolder, strings.Replace(file.Filename, " ", "_", -1), refId, refTable)
+	designatedFolder = fmt.Sprintf("%s/%s/%d%s-%s", config.FileRootPath, designatedFolder, refId, refTable, strings.Replace(file.Filename, " ", "_", -1))
 
 	result := gormTx.Create(&media)
 	if result.Error != nil {
