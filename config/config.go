@@ -83,6 +83,11 @@ type WalletServiceConfig struct {
 	WalletServiceAdr string
 }
 
+type FileHandlingConfig struct {
+	MaxFileSize  uint
+	FileRootPath string
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -94,6 +99,7 @@ type AppConfig struct {
 	MailServiceConfig
 	AuthServiceConfig
 	WalletServiceConfig
+	FileHandlingConfig
 	AppMode     string
 	AppLanguage string
 	AppTimezone string
@@ -170,6 +176,10 @@ func New(envPath string) *AppConfig {
 		},
 		WalletServiceConfig: WalletServiceConfig{
 			WalletServiceAdr: getEnv("WALLET_SERVICE_ADR", ""),
+		},
+		FileHandlingConfig: FileHandlingConfig{
+			MaxFileSize:  uint(getEnvAsInt("MAX_FILE_SIZE", 1024)),
+			FileRootPath: getEnv("FILE_ROOT_PATH", "./files"),
 		},
 		AppMode:     getEnv("APP_MODE", "devs"),
 		AppLanguage: getEnv("APP_LANG", "en"),

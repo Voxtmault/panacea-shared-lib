@@ -27,6 +27,9 @@ PASSWORD_MIN_LENGTH ?= 8
 KEY_PATH ?= key_path
 CERT_PATH ?= cert_path
 
+MAX_FILE_SIZE ?= 50 # MB
+FILE_ROOT_PATH ?= $(CURDIR)/files
+
 APP_MODE ?= devs
 APP_PORT ?= port
 APP_LANG ?= id
@@ -86,6 +89,10 @@ create-env:
 	@echo "# SSL Config" >> .env
 	@echo "KEY_PATH=$(KEY_PATH)" >> .env
 	@echo "CERT_PATH=$(CERT_PATH)" >> .env
+	@echo "" >> .env
+	@echo "# File Handling Config" >> .env
+	@echo "MAX_FILE_SIZE=$(MAX_FILE_SIZE)" >> .env
+	@echo "FILE_ROOT_PATH=$(FILE_ROOT_PATH)" >> .env
 	@echo "" >> .env
 	@echo "# General Configs" >> .env
 	@echo "APP_MODE=$(APP_MODE)" >> .env
