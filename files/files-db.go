@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log"
 	"mime"
 	"mime/multipart"
 	"path/filepath"
@@ -62,7 +63,7 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 		File:        fileInfo,
 	}
 	designatedFolder, media.IDMediaType, fileInfo.MIMEType = getFileExtension(file.Filename)
-	designatedFolder = fmt.Sprintf("%s/%s/%s", config.FileRootPath, designatedFolder, file.Filename)
+	designatedFolder = fmt.Sprintf("%s/%s/%s-%d%s", config.FileRootPath, designatedFolder, strings.Replace(file.Filename, " ", "_", -1), refId, refTable)
 
 	result := gormTx.Create(&media)
 	if result.Error != nil {
@@ -71,6 +72,8 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 		}
 		return result.Error
 	}
+
+	log.Println(result.RowsAffected)
 
 	// Re-open the file reader to read the file data
 	fileReader, err = file.Open()
