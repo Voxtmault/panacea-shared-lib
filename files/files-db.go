@@ -23,11 +23,13 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 	config := config.GetConfig().FileHandlingConfig
 
 	var gormTx *gorm.DB
-	gormTx = gConn.WithContext(ctx).Session(&gorm.Session{NewDB: true}).Begin()
-
 	if tx != nil {
-		// If tx is provided then load the said transaction
+		// If tx is provided, use it to create a GORM transaction
+		gormTx = gConn.WithContext(ctx).Session(&gorm.Session{NewDB: true}).Begin()
 		gormTx = gormTx.Set("gorm:db", tx)
+	} else {
+		// Otherwise, start a new GORM transaction
+		gormTx = gConn.WithContext(ctx).Begin()
 	}
 
 	// Save the file entry to the database
@@ -36,18 +38,15 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 
 	fileReader, err := file.Open()
 	if err != nil {
-		if tx == nil {
-			gormTx.Rollback()
-		}
+		gormTx.Rollback()
 		return err
 	}
+	defer fileReader.Close()
 
-	//Calculate the file hash
+	// Calculate the file hash
 	hasher := sha256.New()
 	if _, err = io.Copy(hasher, fileReader); err != nil {
-		if tx == nil {
-			gormTx.Rollback()
-		}
+		gormTx.Rollback()
 		return err
 	}
 
@@ -62,29 +61,36 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable string, file
 	designatedFolder = fmt.Sprintf("%s/%s/%s", config.FileRootPath, designatedFolder, file.Filename)
 
 	result := gormTx.Create(&media)
-
 	if result.Error != nil {
-		if tx == nil {
-			gormTx.Rollback()
-		}
+		gormTx.Rollback()
 		return result.Error
 	}
 
+	// Re-open the file reader to read the file data
+	fileReader, err = file.Open()
+	if err != nil {
+		gormTx.Rollback()
+		return err
+	}
+	defer fileReader.Close()
+
 	fileData, err := io.ReadAll(fileReader)
 	if err != nil {
-		if tx == nil {
-			gormTx.Rollback()
-		}
+		gormTx.Rollback()
 		return err
 	}
 
 	// Save to the designated folder
 	if err = SaveFile(designatedFolder, fileData); err != nil {
+		gormTx.Rollback()
 		return err
 	}
 
 	if tx == nil {
-		gormTx.Commit()
+		// Commit the GORM transaction if no external transaction is provided
+		if err := gormTx.Commit().Error; err != nil {
+			return err
+		}
 	}
 
 	return nil
