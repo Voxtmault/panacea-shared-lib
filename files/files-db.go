@@ -15,13 +15,13 @@ import (
 	"gorm.io/gorm"
 )
 
-func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable, preferedName string, file *multipart.FileHeader) error {
+func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable, preferedName string, file *multipart.FileHeader) (string, error) {
 	gormTx, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: tx,
 	}), &gorm.Config{})
 	if err != nil {
 		tx.Rollback()
-		return err
+		return "", err
 	}
 
 	config := config.GetConfig().FileHandlingConfig
@@ -42,7 +42,7 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable, preferedNam
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return fmt.Errorf("calculate file hash: %e", err)
+		return "", fmt.Errorf("calculate file hash: %e", err)
 	}
 
 	designatedFolder, media.IDMediaType, fileInfo.MIMEType = getFileExtension(file.Filename)
@@ -55,7 +55,7 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable, preferedNam
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return result.Error
+		return "", result.Error
 	}
 
 	fileData, err := getFileData(file)
@@ -63,7 +63,7 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable, preferedNam
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return fmt.Errorf("get file data: %e", err)
+		return "", fmt.Errorf("get file data: %e", err)
 	}
 
 	// Save to the designated folder
@@ -71,27 +71,27 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable, preferedNam
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return err
+		return "", err
 	}
 
 	if tx == nil {
 		// Commit the GORM transaction if no external transaction is provided
 		if err := gormTx.Commit().Error; err != nil {
 			gormTx.Rollback()
-			return err
+			return "", err
 		}
 	}
 
-	return nil
+	return fileInfo.FilePath, nil
 }
 
-func UpdateInDB(ctx context.Context, tx *sql.Tx, mediaId, refId uint, refTable string, file *multipart.FileHeader) error {
+func UpdateInDB(ctx context.Context, tx *sql.Tx, mediaId, refId uint, refTable string, file *multipart.FileHeader) (string, error) {
 	gormTx, err := gorm.Open(mysql.New(mysql.Config{
 		Conn: tx,
 	}), &gorm.Config{})
 	if err != nil {
 		tx.Rollback()
-		return err
+		return "", err
 	}
 
 	config := config.GetConfig().FileHandlingConfig
@@ -107,7 +107,7 @@ func UpdateInDB(ctx context.Context, tx *sql.Tx, mediaId, refId uint, refTable s
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return result.Error
+		return "", result.Error
 	}
 
 	fileReader, err := file.Open()
@@ -115,7 +115,7 @@ func UpdateInDB(ctx context.Context, tx *sql.Tx, mediaId, refId uint, refTable s
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return err
+		return "", err
 	}
 	defer fileReader.Close()
 
@@ -125,7 +125,7 @@ func UpdateInDB(ctx context.Context, tx *sql.Tx, mediaId, refId uint, refTable s
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return err
+		return "", err
 	}
 
 	fileInfo.HashValue = hex.EncodeToString(hasher.Sum(nil))
@@ -143,7 +143,7 @@ func UpdateInDB(ctx context.Context, tx *sql.Tx, mediaId, refId uint, refTable s
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return result.Error
+		return "", result.Error
 	}
 
 	// Re-open the file reader to read the file data
@@ -152,7 +152,7 @@ func UpdateInDB(ctx context.Context, tx *sql.Tx, mediaId, refId uint, refTable s
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return err
+		return "", err
 	}
 	defer fileReader.Close()
 
@@ -161,7 +161,7 @@ func UpdateInDB(ctx context.Context, tx *sql.Tx, mediaId, refId uint, refTable s
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return err
+		return "", err
 	}
 
 	// Save to the designated folder
@@ -169,18 +169,18 @@ func UpdateInDB(ctx context.Context, tx *sql.Tx, mediaId, refId uint, refTable s
 		if tx == nil {
 			gormTx.Rollback()
 		}
-		return err
+		return "", err
 	}
 
 	if tx == nil {
 		// Commit the GORM transaction if no external transaction is provided
 		if err := gormTx.Commit().Error; err != nil {
 			gormTx.Rollback()
-			return err
+			return "", err
 		}
 	}
 
-	return nil
+	return fileInfo.FilePath, nil
 }
 
 // DeleteFromDB is not implemented yet
