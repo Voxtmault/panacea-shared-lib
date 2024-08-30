@@ -67,7 +67,7 @@ func SaveToDB(ctx context.Context, tx *sql.Tx, refId uint, refTable, preferedNam
 	}
 
 	// Save to the designated folder
-	if err = SaveFile(designatedFolder, fileData); err != nil {
+	if err = SaveFile(fileInfo.FilePath, fileData); err != nil {
 		if tx == nil {
 			gormTx.Rollback()
 		}
