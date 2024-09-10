@@ -45,6 +45,13 @@ LOG_MAX_BACKUP ?= 5
 LOG_MAX_AGE ?= 30
 LOG_COMPRESS ?= true
 
+# HTTP Timeouts
+GET_TIMEOUT ?= 10
+POST_TIMEOUT ?= 10
+PUT_TIMEOUT ?= 10
+PATCH_TIMEOUT ?= 10
+DELETE_TIMEOUT ?= 10
+
 # Target to create .env file
 create-env:
 	@echo "Creating .env file..."
@@ -100,6 +107,13 @@ create-env:
 	@echo "LOG_MAX_BACKUP=$(LOG_MAX_BACKUP)" >> .env
 	@echo "LOG_MAX_AGE=$(LOG_MAX_AGE)" >> .env
 	@echo "LOG_COMPRESS=$(LOG_COMPRESS)" >> .env
+	@echo "" >> .env
+	@echo "# HTTP Timeout Configs" >> .env
+	@echo "GET_TIMEOUT=$(GET_TIMEOUT)" >> .env
+	@echo "POST_TIMEOUT=$(POST_TIMEOUT)" >> .env
+	@echo "PUT_TIMEOUT=$(PUT_TIMEOUT)" >> .env
+	@echo "PATCH_TIMEOUT=$(PATCH_TIMEOUT)" >> .env
+	@echo "DELETE_TIMEOUT=$(DELETE_TIMEOUT)" >> .env
 	@echo ".env file created successfully."
 
 # Default target
