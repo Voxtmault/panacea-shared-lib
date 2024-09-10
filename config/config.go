@@ -68,6 +68,14 @@ type FileHandlingConfig struct {
 	FileRootPath string
 }
 
+type HTTPTimeouts struct {
+	GetTimeout    int
+	PostTimeout   int
+	PutTimeout    int
+	PatchTimeout  int
+	DeleteTimeout int
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -76,6 +84,7 @@ type AppConfig struct {
 	SecurityConfig
 	SSLConfig
 	FileHandlingConfig
+	HTTPTimeouts
 	AppMode     string
 	AppLanguage string
 	AppTimezone string
@@ -141,6 +150,13 @@ func New(envPath string) *AppConfig {
 		FileHandlingConfig: FileHandlingConfig{
 			MaxFileSize:  uint(getEnvAsInt("MAX_FILE_SIZE", 1024)),
 			FileRootPath: getEnv("FILE_ROOT_PATH", "./files"),
+		},
+		HTTPTimeouts: HTTPTimeouts{
+			GetTimeout:    getEnvAsInt("GET_TIMEOUT", 5),
+			PostTimeout:   getEnvAsInt("POST_TIMEOUT", 5),
+			PutTimeout:    getEnvAsInt("PUT_TIMEOUT", 5),
+			PatchTimeout:  getEnvAsInt("PATCH_TIMEOUT", 5),
+			DeleteTimeout: getEnvAsInt("DELETE_TIMEOUT", 5),
 		},
 		AppMode:     getEnv("APP_MODE", "devs"),
 		AppLanguage: getEnv("APP_LANG", "en"),
