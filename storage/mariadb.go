@@ -9,10 +9,14 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/rotisserie/eris"
 	"github.com/voxtmault/panacea-shared-lib/config"
+	gormMysql "gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-var db *sql.DB
-var dbConnections = make(map[string]*sql.DB)
+var (
+	mariaCon     *sql.DB
+	gormMariaCon *gorm.DB
+)
 
 type MariaDatabaseStats struct {
 	OpenConnections      int           `json:"open_connections"`
@@ -63,16 +67,16 @@ func InitMariaDB(config *config.DBConfig) error {
 		},
 	}
 
-	db, err = sql.Open(mariaDriver, dsn.FormatDSN())
+	mariaCon, err = sql.Open(mariaDriver, dsn.FormatDSN())
 	if err != nil {
 		return eris.Wrap(err, "Opening MySQL/MariaDB Connection")
 	}
 
-	db.SetMaxOpenConns(20)
-	db.SetMaxIdleConns(5)
-	db.SetConnMaxLifetime(time.Second * 5)
+	mariaCon.SetMaxOpenConns(20)
+	mariaCon.SetMaxIdleConns(5)
+	mariaCon.SetConnMaxLifetime(time.Second * 5)
 
-	err = db.Ping()
+	err = mariaCon.Ping()
 	if err != nil {
 		return eris.Wrap(err, "Error verifying database connection")
 	}
@@ -82,17 +86,17 @@ func InitMariaDB(config *config.DBConfig) error {
 }
 
 func GetDBConnection() *sql.DB {
-	return db
+	return mariaCon
 }
 
 // GetMariaStats
 func GetDBStats() MariaDatabaseStats {
 	return MariaDatabaseStats{
-		OpenConnections:      db.Stats().OpenConnections,
-		ConnectionInUse:      db.Stats().InUse,
-		ConnectionIdle:       db.Stats().Idle,
-		WaitingForConnection: int(db.Stats().WaitCount),
-		TotalWaitTime:        db.Stats().WaitDuration,
+		OpenConnections:      mariaCon.Stats().OpenConnections,
+		ConnectionInUse:      mariaCon.Stats().InUse,
+		ConnectionIdle:       mariaCon.Stats().Idle,
+		WaitingForConnection: int(mariaCon.Stats().WaitCount),
+		TotalWaitTime:        mariaCon.Stats().WaitDuration,
 	}
 }
 
@@ -100,9 +104,29 @@ func GetDBStats() MariaDatabaseStats {
 //
 // Under normal circumstances, this shouldn't be called by anyone other than main
 func Close() error {
-	if err := db.Close(); err != nil {
+	if err := mariaCon.Close(); err != nil {
 		return eris.Wrap(err, "Closing DB")
 	} else {
 		return nil
 	}
+}
+
+// ORM Implementation
+func InitGORMMariaDB() error {
+	conn, err := gorm.Open(
+		gormMysql.New(gormMysql.Config{
+			Conn: mariaCon,
+		}),
+		&gorm.Config{},
+	)
+	if err != nil {
+		return err
+	}
+	gormMariaCon = conn
+
+	return nil
+}
+
+func GetGORMMariaDB() *gorm.DB {
+	return gormMariaCon
 }
