@@ -46,7 +46,7 @@ func listenForMessages() {
 				// Attempt to reconnect
 				for {
 					conn, err = connectWebSocket(config.GetConfig().WebsocketConfig.WSURL, http.Header{
-						"api-token": []string{config.GetConfig().WebsocketConfig.WSApiToken},
+						"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
 					})
 					if err != nil {
 						log.Println("Reconnect attempt failed:", err)
