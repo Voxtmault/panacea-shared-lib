@@ -52,6 +52,20 @@ PUT_TIMEOUT ?= 10
 PATCH_TIMEOUT ?= 10
 DELETE_TIMEOUT ?= 10
 
+# RPC Configs
+BPJS_RPC ?= localhost
+PATIENT_RPC ?= localhost 
+FRONTDESK_RPC ?= localhost
+ER_RPC ?= localhost
+PHARMACY_RPC ?= localhost
+POLICLINIC_RPC ?= localhost
+SATUSEHAT_RPC ?= localhost
+LAB_RPC ?= localhost
+RADIOLOGY_RPC ?= localhost
+DIETARY_RPC ?= localhost
+INPATIENT_RPC ?= localhost
+ICU_RPC ?= localhost
+
 # Target to create .env file
 create-env:
 	@echo "Creating .env file..."
@@ -114,6 +128,20 @@ create-env:
 	@echo "PUT_TIMEOUT=$(PUT_TIMEOUT)" >> .env
 	@echo "PATCH_TIMEOUT=$(PATCH_TIMEOUT)" >> .env
 	@echo "DELETE_TIMEOUT=$(DELETE_TIMEOUT)" >> .env
+	@echo "" >> .env
+	@echo "# GRPC Configs" >> .env
+	@echo "BPJS_RPC=$(BPJS_RPC)" >> .env
+	@echo "PATIENT_RPC=$(PATIENT_RPC)" >> .env
+	@echo "FRONTDESK_RPC=$(FRONTDESK_RPC)" >> .env
+	@echo "ER_RPC=$(ER_RPC)" >> .env
+	@echo "PHARMACY_RPC=$(PHARMACY_RPC)" >> .env
+	@echo "POLICLINIC_RPC=$(POLICLINIC_RPC)" >> .env
+	@echo "SATUSEHAT_RPC=$(SATUSEHAT_RPC)" >> .env
+	@echo "LAB_RPC=$(LAB_RPC)" >> .env
+	@echo "RADIOLOGY_RPC=$(RADIOLOGY_RPC)" >> .env
+	@echo "DIETARY_RPC=$(DIETARY_RPC)" >> .env
+	@echo "INPATIENT_RPC=$(INPATIENT_RPC)" >> .env
+	@echo "ICU_RPC=$(ICU_RPC)" >> .env
 	@echo ".env file created successfully."
 
 # Default target
