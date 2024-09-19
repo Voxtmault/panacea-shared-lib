@@ -76,6 +76,21 @@ type HTTPTimeouts struct {
 	DeleteTimeout int
 }
 
+type GRPCConfig struct {
+	BPJSRPC       string
+	PatientRPC    string
+	FrontdeskRPC  string
+	ERRPC         string // Emergency Room
+	PharmacyRPC   string
+	PoliclinicRPC string
+	SatuSehatRPC  string
+	LabRPC        string
+	RadiologyRPC  string
+	DietaryRPC    string
+	InpatientRPC  string
+	ICURPC        string
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -85,6 +100,7 @@ type AppConfig struct {
 	SSLConfig
 	FileHandlingConfig
 	HTTPTimeouts
+	GRPCConfig
 	AppMode     string
 	AppLanguage string
 	AppTimezone string
@@ -157,6 +173,20 @@ func New(envPath string) *AppConfig {
 			PutTimeout:    getEnvAsInt("PUT_TIMEOUT", 5),
 			PatchTimeout:  getEnvAsInt("PATCH_TIMEOUT", 5),
 			DeleteTimeout: getEnvAsInt("DELETE_TIMEOUT", 5),
+		},
+		GRPCConfig: GRPCConfig{
+			BPJSRPC:       getEnv("BPJS_RPC", ""),
+			PatientRPC:    getEnv("PATIENT_RPC", ""),
+			FrontdeskRPC:  getEnv("FRONTDESK_RPC", ""),
+			ERRPC:         getEnv("ER_RPC", ""),
+			PharmacyRPC:   getEnv("PHARMACY_RPC", ""),
+			PoliclinicRPC: getEnv("POLICLINIC_RPC", ""),
+			SatuSehatRPC:  getEnv("SATUSEHAT_RPC", ""),
+			LabRPC:        getEnv("LAB_RPC", ""),
+			RadiologyRPC:  getEnv("RADIOLOGY_RPC", ""),
+			DietaryRPC:    getEnv("DIETARY_RPC", ""),
+			InpatientRPC:  getEnv("INPATIENT_RPC", ""),
+			ICURPC:        getEnv("ICU_RPC", ""),
 		},
 		AppMode:     getEnv("APP_MODE", "devs"),
 		AppLanguage: getEnv("APP_LANG", "en"),
