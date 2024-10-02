@@ -59,13 +59,24 @@ func GetRedisCon() *redis.Client {
 	return redisClient
 }
 
+// SaveToRedis can also be use to update values in redis
 func SaveToRedis(ctx context.Context, key string, value interface{}) error {
 	cfg := config.GetConfig()
-	con := GetRedisCon()
 
-	if err := con.Set(ctx, key, value, time.Minute*time.Duration(cfg.RedisConfig.RedisExpiration)).Err(); err != nil {
+	if err := redisClient.Set(ctx, key, value, time.Minute*time.Duration(cfg.RedisConfig.RedisExpiration)).Err(); err != nil {
 		return eris.Wrap(err, "saving data to redis cache")
 	}
 
 	return nil
+}
+
+func GetFromRedis(ctx context.Context, key string) (any, error) {
+	value, err := redisClient.Get(ctx, key).Result()
+	if err == redis.Nil {
+		return nil, fmt.Errorf("key not found")
+	} else if err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }
