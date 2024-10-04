@@ -89,14 +89,15 @@ type AppConfig struct {
 	SMTPConfig
 	MailServiceConfig
 	AuthServiceConfig
-	AppMode     string
-	AppLanguage string
-	AppTimezone string
-	AppPort     string
-	GRPCPort    string
-	AppHost     string
-	AppRoot     string
-	DebugMode   bool
+	AppMode              string
+	AppLanguage          string
+	AppTimezone          string
+	AppPort              string
+	GRPCPort             string
+	AppHost              string
+	AppRoot              string
+	DebugMode            bool
+	AllowBalanceNegative bool
 }
 
 var config *AppConfig
@@ -164,14 +165,15 @@ func New(envPath string) *AppConfig {
 		AuthServiceConfig: AuthServiceConfig{
 			AuthServiceAdr: getEnv("AUTH_SERVICE_ADR", ""),
 		},
-		AppMode:     getEnv("APP_MODE", "devs"),
-		AppLanguage: getEnv("APP_LANG", "en"),
-		AppTimezone: getEnv("APP_TIMEZONE", "Asia/Jakarta"),
-		AppPort:     getEnv("APP_PORT", ""),
-		GRPCPort:    getEnv("GRPC_PORT", ""),
-		AppHost:     getEnv("APP_HOST", ""),
-		AppRoot:     getEnv("APP_ROOT", "/api/v1"),
-		DebugMode:   getEnvAsBool("DEBUG", false),
+		AppMode:              getEnv("APP_MODE", "devs"),
+		AppLanguage:          getEnv("APP_LANG", "en"),
+		AppTimezone:          getEnv("APP_TIMEZONE", "Asia/Jakarta"),
+		AppPort:              getEnv("APP_PORT", ""),
+		GRPCPort:             getEnv("GRPC_PORT", ""),
+		AppHost:              getEnv("APP_HOST", ""),
+		AppRoot:              getEnv("APP_ROOT", "/api/v1"),
+		DebugMode:            getEnvAsBool("DEBUG", false),
+		AllowBalanceNegative: getEnvAsBool("ALLOW_BALANCE_NEGATIVE", false),
 	}
 
 	return config
