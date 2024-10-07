@@ -79,6 +79,19 @@ type AuthServiceConfig struct {
 	AuthServiceAdr string
 }
 
+type Keys struct {
+	PrivateKeyPath string
+	PublicKeyPath  string
+}
+
+// Banking Config
+type BCAConfig struct {
+	BaseURL        string
+	ClientID       string
+	AccessToken    string
+	AccessTokenURL string
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -89,6 +102,8 @@ type AppConfig struct {
 	SMTPConfig
 	MailServiceConfig
 	AuthServiceConfig
+	Keys
+	BCAConfig
 	AppMode              string
 	AppLanguage          string
 	AppTimezone          string
@@ -164,6 +179,15 @@ func New(envPath string) *AppConfig {
 		},
 		AuthServiceConfig: AuthServiceConfig{
 			AuthServiceAdr: getEnv("AUTH_SERVICE_ADR", ""),
+		},
+		Keys: Keys{
+			PrivateKeyPath: getEnv("PRIVATE_KEY_PATH", ""),
+			PublicKeyPath:  getEnv("PUBLIC_KEY_PATH", ""),
+		},
+		BCAConfig: BCAConfig{
+			BaseURL:        getEnv("BCA_BASE_URL", ""),
+			ClientID:       getEnv("BCA_CLIENT_ID", ""),
+			AccessTokenURL: getEnv("BCA_ACCESS_TOKEN_URL", ""),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
