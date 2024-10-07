@@ -128,6 +128,9 @@ func SendMessage(ctx context.Context, messageType types.EventList, message inter
 		return eris.Wrap(err, "Marshalling Payload")
 	}
 
+	log.Println("Message", msg)
+	log.Println("Message Payload", string(msg.Payload))
+
 	conn.WriteJSON(msg)
 
 	return nil
