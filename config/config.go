@@ -88,6 +88,7 @@ type Keys struct {
 type BCAConfig struct {
 	BaseURL        string
 	ClientID       string
+	ClientSecret   string
 	AccessToken    string
 	AccessTokenURL string
 }
@@ -187,6 +188,7 @@ func New(envPath string) *AppConfig {
 		BCAConfig: BCAConfig{
 			BaseURL:        getEnv("BCA_BASE_URL", ""),
 			ClientID:       getEnv("BCA_CLIENT_ID", ""),
+			ClientSecret:   getEnv("BCA_CLIENT_SECRET", ""),
 			AccessTokenURL: getEnv("BCA_ACCESS_TOKEN_URL", ""),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
