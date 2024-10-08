@@ -86,11 +86,11 @@ type Keys struct {
 
 // Banking Config
 type BCAConfig struct {
-	BaseURL        string
-	ClientID       string
-	ClientSecret   string
-	AccessToken    string
-	AccessTokenURL string
+	BaseURL        string `validate:"required"`
+	ClientID       string `validate:"required"`
+	ClientSecret   string `validate:"required"`
+	AccessToken    string `validate:"omitempty"`
+	AccessTokenURL string `validate:"required"`
 }
 
 type AppConfig struct {
