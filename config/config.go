@@ -86,11 +86,15 @@ type Keys struct {
 
 // Banking Config
 type BCAConfig struct {
-	BaseURL        string `validate:"required"`
-	ClientID       string `validate:"required"`
-	ClientSecret   string `validate:"required"`
-	AccessToken    string `validate:"omitempty"`
-	AccessTokenURL string `validate:"required"`
+	BaseURL      string `validate:"required"`
+	ClientID     string `validate:"required"`
+	ClientSecret string `validate:"required"`
+	AccessToken  string `validate:"omitempty"`
+}
+
+type BCAURLEndpoints struct {
+	AccessTokenURL    string
+	BalanceInquiryURL string
 }
 
 type AppConfig struct {
@@ -105,6 +109,7 @@ type AppConfig struct {
 	AuthServiceConfig
 	Keys
 	BCAConfig
+	BCAURLEndpoints
 	AppMode              string
 	AppLanguage          string
 	AppTimezone          string
@@ -186,10 +191,13 @@ func New(envPath string) *AppConfig {
 			PublicKeyPath:  getEnv("PUBLIC_KEY_PATH", ""),
 		},
 		BCAConfig: BCAConfig{
-			BaseURL:        getEnv("BCA_BASE_URL", ""),
-			ClientID:       getEnv("BCA_CLIENT_ID", ""),
-			ClientSecret:   getEnv("BCA_CLIENT_SECRET", ""),
-			AccessTokenURL: getEnv("BCA_ACCESS_TOKEN_URL", ""),
+			BaseURL:      getEnv("BCA_BASE_URL", ""),
+			ClientID:     getEnv("BCA_CLIENT_ID", ""),
+			ClientSecret: getEnv("BCA_CLIENT_SECRET", ""),
+		},
+		BCAURLEndpoints: BCAURLEndpoints{
+			AccessTokenURL:    getEnv("BCA_ACCESS_TOKEN_URL", ""),
+			BalanceInquiryURL: getEnv("BCA_BALANCE_INQUIRY_URL", ""),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
