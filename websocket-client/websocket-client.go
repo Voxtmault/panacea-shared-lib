@@ -117,6 +117,9 @@ func GetWSConn() *websocket.Conn {
 	return conn
 }
 
+// DO NOT MARSHALL WHATEVER MESSAGE (3rd Parameter) YOU MIGHT HAVE, THE FUNCTION IS ALREADY GOING TO MARSHALL IT
+//
+// DO NOT COMPLAIN TO ME IF SHIT'S NOT GETTING HANDLED CORRECTLY
 func SendMessage(ctx context.Context, messageType types.EventList, message interface{}) error {
 
 	var msg Event
