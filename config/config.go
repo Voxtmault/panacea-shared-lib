@@ -79,11 +79,6 @@ type AuthServiceConfig struct {
 	AuthServiceAdr string
 }
 
-type Keys struct {
-	PrivateKeyPath string
-	PublicKeyPath  string
-}
-
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -94,7 +89,6 @@ type AppConfig struct {
 	SMTPConfig
 	MailServiceConfig
 	AuthServiceConfig
-	Keys
 	AppMode              string
 	AppLanguage          string
 	AppTimezone          string
@@ -170,10 +164,6 @@ func New(envPath string) *AppConfig {
 		},
 		AuthServiceConfig: AuthServiceConfig{
 			AuthServiceAdr: getEnv("AUTH_SERVICE_ADR", ""),
-		},
-		Keys: Keys{
-			PrivateKeyPath: getEnv("PRIVATE_KEY_PATH", ""),
-			PublicKeyPath:  getEnv("PUBLIC_KEY_PATH", ""),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
