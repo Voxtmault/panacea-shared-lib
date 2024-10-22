@@ -1,6 +1,9 @@
 package logger
 
 import (
+	"log/slog"
+	"os"
+
 	"github.com/voxtmault/panacea-shared-lib/config"
 
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -9,6 +12,7 @@ import (
 var (
 	serverLogger *lumberjack.Logger
 	errorLogger  *lumberjack.Logger
+	appLogger    *slog.Logger
 )
 
 func InitLogger(conf *config.LoggingConfig) error {
@@ -46,4 +50,16 @@ func GetServerLogger() *lumberjack.Logger {
 
 func GetErrorLogger() *lumberjack.Logger {
 	return errorLogger
+}
+
+func InitAppLogger(cfg *config.AppConfig) {
+	if cfg.DebugMode {
+		appLogger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	} else {
+		appLogger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	}
+}
+
+func GetAppLogger() *slog.Logger {
+	return appLogger
 }

@@ -84,19 +84,6 @@ type Keys struct {
 	PublicKeyPath  string
 }
 
-// Banking Config
-type BCAConfig struct {
-	BaseURL      string `validate:"required"`
-	ClientID     string `validate:"required"`
-	ClientSecret string `validate:"required"`
-	AccessToken  string `validate:"omitempty"`
-}
-
-type BCAURLEndpoints struct {
-	AccessTokenURL    string
-	BalanceInquiryURL string
-}
-
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -108,8 +95,6 @@ type AppConfig struct {
 	MailServiceConfig
 	AuthServiceConfig
 	Keys
-	BCAConfig
-	BCAURLEndpoints
 	AppMode              string
 	AppLanguage          string
 	AppTimezone          string
@@ -189,15 +174,6 @@ func New(envPath string) *AppConfig {
 		Keys: Keys{
 			PrivateKeyPath: getEnv("PRIVATE_KEY_PATH", ""),
 			PublicKeyPath:  getEnv("PUBLIC_KEY_PATH", ""),
-		},
-		BCAConfig: BCAConfig{
-			BaseURL:      getEnv("BCA_BASE_URL", ""),
-			ClientID:     getEnv("BCA_CLIENT_ID", ""),
-			ClientSecret: getEnv("BCA_CLIENT_SECRET", ""),
-		},
-		BCAURLEndpoints: BCAURLEndpoints{
-			AccessTokenURL:    getEnv("BCA_ACCESS_TOKEN_URL", ""),
-			BalanceInquiryURL: getEnv("BCA_BALANCE_INQUIRY_URL", ""),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
