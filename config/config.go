@@ -46,9 +46,10 @@ type WebsocketConfig struct {
 }
 
 type WebsocketCoreConfig struct {
-	PongWait     uint
-	PingInterval uint
-	AuthTimeout  uint
+	PongWait          uint
+	PingInterval      uint
+	AuthTimeout       uint
+	GracePeriodMinute uint
 
 	// Buffer Size
 	ReadBufferSize  uint
@@ -156,11 +157,12 @@ func New(envPath string) *AppConfig {
 			WSReconnectInterval: uint(getEnvAsInt("WS_RECONNECT_INTERVAL", 5)),
 		},
 		WebsocketCoreConfig: WebsocketCoreConfig{
-			PongWait:        uint(getEnvAsInt("PONG_WAIT", 60)),
-			PingInterval:    uint(getEnvAsInt("PING_INTERVAL", 60)),
-			AuthTimeout:     uint(getEnvAsInt("AUTH_TIMEOUT", 60)),
-			ReadBufferSize:  uint(getEnvAsInt("READ_BUFFER_SIZE", 1024)),
-			WriteBufferSize: uint(getEnvAsInt("WRITE_BUFFER_SIZE", 1024)),
+			PongWait:          uint(getEnvAsInt("PONG_WAIT", 60)),
+			PingInterval:      uint(getEnvAsInt("PING_INTERVAL", 60)),
+			AuthTimeout:       uint(getEnvAsInt("AUTH_TIMEOUT", 60)),
+			GracePeriodMinute: uint(getEnvAsInt("GRACE_PERIOD_MINUTE", 5)),
+			ReadBufferSize:    uint(getEnvAsInt("READ_BUFFER_SIZE", 1024)),
+			WriteBufferSize:   uint(getEnvAsInt("WRITE_BUFFER_SIZE", 1024)),
 		},
 		LoggingConfig: LoggingConfig{
 			ServerLogPath: getEnv("LOG_PATH", "./log/server.log"),
