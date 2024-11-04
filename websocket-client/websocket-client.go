@@ -39,10 +39,12 @@ func listenForMessages() {
 			if strings.Contains(err.Error(), "connection reset by peer") ||
 				strings.Contains(err.Error(), strconv.Itoa(websocket.CloseGoingAway)) ||
 				strings.Contains(err.Error(), strconv.Itoa(websocket.CloseAbnormalClosure)) {
-				log.Println("Websocket connection closed abnormally, attempting to reconnect")
+				log.Println("Websocket connection closed abnormally, attempting to reconnect", err)
 
 				// Close the current connection
-				conn.Close()
+				if err := conn.Close(); err != nil {
+					log.Println("Error closing websocket connection:", err)
+				}
 
 				// Attempt to reconnect
 				for {
@@ -101,6 +103,7 @@ func InitWebsocketClient() error {
 }
 
 func CloseWebsocketClient() error {
+	slog.Info("Closing Websocket Connection")
 	// Ensure the WebSocket connection is closed
 	if err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
 		return err
