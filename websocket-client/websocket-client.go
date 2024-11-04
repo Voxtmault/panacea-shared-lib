@@ -62,9 +62,10 @@ func listenForMessages() {
 
 			} else {
 				log.Println("Error reading message:", err)
-				return
+				break
 			}
 		}
+
 		// Print the received message
 		if config.GetConfig().DebugMode {
 			log.Println("Received message:", string(message))
