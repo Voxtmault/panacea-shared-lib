@@ -18,7 +18,10 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-var conn *websocket.Conn
+var (
+	conn         *websocket.Conn
+	messageQueue chan *Event
+)
 
 func connectWebSocket(serverURL string, headers http.Header) (*websocket.Conn, error) {
 	// Connect to the WebSocket server with custom headers
@@ -99,6 +102,9 @@ func InitWebsocketClient() error {
 	// Start a goroutine to listen for messages from the WebSocket server
 	go listenForMessages()
 
+	// Init the message queue with a default of 1000 messages capacity
+	messageQueue = make(chan *Event, 1000)
+
 	slog.Info("Successfully Connected To Websocket Server")
 	return nil
 }
@@ -137,9 +143,16 @@ func SendMessage(ctx context.Context, messageType types.EventList, message inter
 
 	// log.Println("Sending message:", string(msg.Payload))
 
-	conn.WriteJSON(msg)
+	if err := conn.WriteJSON(msg); err != nil {
+		slog.Error("error writing message to websocket", "error", err)
+	}
 
 	return nil
+}
+
+// AddMessageToQueue is used to add whatever event you might have into an internal queue
+func AddMessageToQueue(ctx context.Context, e *Event) {
+	messageQueue <- e
 }
 
 func websocketBusinessLogic(event []byte) {
