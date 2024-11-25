@@ -125,7 +125,7 @@ func New(envPath string) *AppConfig {
 			DBUser:               getEnv("DB_USER", ""),
 			DBPassword:           getEnv("DB_PASSWORD", ""),
 			DBName:               getEnv("DB_NAME", ""),
-			TSLConfig:            getEnv("DB_TLS_CONFIG", "true"),
+			TSLConfig:            getEnv("DB_TLS_CONFIG", "false"),
 			AllowNativePasswords: getEnvAsBool("DB_ALLOW_NATIVE_PASSWORDS", true),
 			MultiStatements:      getEnvAsBool("DB_MULTI_STATEMENTS", false),
 			MaxOpenConns:         uint(getEnvAsInt("DB_MAX_OPEN_CONNS", 20)),
