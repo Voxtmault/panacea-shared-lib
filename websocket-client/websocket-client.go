@@ -18,11 +18,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-var (
-	conn          *websocket.Conn
-	messageQueue  chan *Event
-	requiredAlive bool
-)
+var conn *websocket.Conn
 
 func connectWebSocket(serverURL string, headers http.Header) (*websocket.Conn, error) {
 	// Connect to the WebSocket server with custom headers
@@ -43,11 +39,11 @@ func listenForMessages() {
 			if strings.Contains(err.Error(), "connection reset by peer") ||
 				strings.Contains(err.Error(), strconv.Itoa(websocket.CloseGoingAway)) ||
 				strings.Contains(err.Error(), strconv.Itoa(websocket.CloseAbnormalClosure)) {
-				slog.Debug("Websocket connection closed abnormally, attempting to reconnect", "error", err)
+				log.Println("Websocket connection closed abnormally, attempting to reconnect", err)
 
 				// Close the current connection
 				if err := conn.Close(); err != nil {
-					slog.Error("error closing websocket connection", "error", err)
+					log.Println("Error closing websocket connection:", err)
 				}
 
 				// Attempt to reconnect
@@ -56,16 +52,16 @@ func listenForMessages() {
 						"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
 					})
 					if err != nil {
-						slog.Debug("reconnect attempt failed", "reason", err)
+						log.Println("Reconnect attempt failed:", err)
 						time.Sleep(time.Second * time.Duration(config.GetConfig().WebsocketConfig.WSReconnectInterval))
 					} else {
-						slog.Debug("reconnected to websocket server")
+						log.Println("Reconnected to websocket server")
 						break
 					}
 				}
 
 			} else {
-				slog.Debug("error reading message", "error", err)
+				log.Println("Error reading message:", err)
 				break
 			}
 		}
@@ -77,30 +73,6 @@ func listenForMessages() {
 
 		// Business Logic Here
 		websocketBusinessLogic(message)
-	}
-}
-
-func sendMessagesToWebsocket() {
-	for message := range messageQueue {
-		slog.Debug("received message from queue")
-		time.Sleep(time.Second * 1)
-		// Checks if the connection is alive, if not then wait until connection is restored
-		if conn == nil && requiredAlive {
-			slog.Debug("connection is gone, waiting for reconnection")
-			for conn == nil && requiredAlive {
-				// Wait for approx 1 second before trying to send the message again
-				time.Sleep(time.Second * 1)
-			}
-			slog.Debug("reconnected, sending message now")
-		}
-
-		// Send the message to the WebSocket
-		err := conn.WriteJSON(message)
-		if err != nil {
-			// Handle error (e.g., log it, attempt to reconnect, etc.)
-			conn = nil
-		}
-		slog.Debug("message sent to websocket")
 	}
 }
 
@@ -124,13 +96,8 @@ func InitWebsocketClient() error {
 		return err
 	}
 
-	// Init the message queue with a default of 1000 messages capacity
-	messageQueue = make(chan *Event, 1000)
-	requiredAlive = true
-
 	// Start a goroutine to listen for messages from the WebSocket server
 	go listenForMessages()
-	go sendMessagesToWebsocket()
 
 	slog.Info("Successfully Connected To Websocket Server")
 	return nil
@@ -138,21 +105,14 @@ func InitWebsocketClient() error {
 
 func CloseWebsocketClient() error {
 	slog.Info("Closing Websocket Connection")
-
-	requiredAlive = false
-	close(messageQueue)
-
 	// Ensure the WebSocket connection is closed
-	if conn != nil {
-		if err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
-			return err
-		}
+	if err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
+		slog.Warn("error while sending close message to the websocket server, forcefully closing the connection", "error", err)
+	}
 
-		if err := conn.Close(); err != nil {
-			return err
-		}
-	} else {
-		slog.Info("websocket connections is already closed")
+	if err := conn.Close(); err != nil {
+		slog.Warn("could not close the existing websocket connection", "error", err)
+		conn = nil
 	}
 
 	return nil
@@ -178,16 +138,9 @@ func SendMessage(ctx context.Context, messageType types.EventList, message inter
 
 	// log.Println("Sending message:", string(msg.Payload))
 
-	if err := conn.WriteJSON(msg); err != nil {
-		slog.Error("error writing message to websocket", "error", err)
-	}
+	conn.WriteJSON(msg)
 
 	return nil
-}
-
-// AddMessageToQueue is used to add whatever event / messages you might have into an internal queue
-func AddMessageToQueue(ctx context.Context, e *Event) {
-	messageQueue <- e
 }
 
 func websocketBusinessLogic(event []byte) {
@@ -210,13 +163,5 @@ func websocketBusinessLogic(event []byte) {
 		handler(message)
 	} else {
 		slog.Info("Websocket Business Logic", "Unsupported Message Type", message.Type)
-	}
-}
-
-func simulateDisconnection() {
-	if conn == nil {
-		return
-	} else {
-		conn.Close()
 	}
 }
