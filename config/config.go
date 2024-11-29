@@ -79,6 +79,12 @@ type AuthServiceConfig struct {
 	AuthServiceAdr string
 }
 
+type TransactionColorCodeSettings struct {
+	Income    string
+	Expense   string
+	Undefined string
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -89,6 +95,7 @@ type AppConfig struct {
 	SMTPConfig
 	MailServiceConfig
 	AuthServiceConfig
+	TransactionColorCodeSettings
 	AppMode              string
 	AppLanguage          string
 	AppTimezone          string
@@ -164,6 +171,11 @@ func New(envPath string) *AppConfig {
 		},
 		AuthServiceConfig: AuthServiceConfig{
 			AuthServiceAdr: getEnv("AUTH_SERVICE_ADR", ""),
+		},
+		TransactionColorCodeSettings: TransactionColorCodeSettings{
+			Income:    getEnv("TRANSACTION_COLOR_CODE_INCOME", "#34eb40"),
+			Expense:   getEnv("TRANSACTION_COLOR_CODE_EXPENSE", "#eb3434"),
+			Undefined: getEnv("TRANSACTION_COLOR_CODE_UNDEFINED", "#ebdc34"),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
