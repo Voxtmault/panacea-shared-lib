@@ -7,8 +7,6 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/voxtmault/panacea-shared-lib/config"
@@ -36,33 +34,25 @@ func listenForMessages() {
 		// Read message from the server
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			if strings.Contains(err.Error(), "connection reset by peer") ||
-				strings.Contains(err.Error(), strconv.Itoa(websocket.CloseGoingAway)) ||
-				strings.Contains(err.Error(), strconv.Itoa(websocket.CloseAbnormalClosure)) {
-				log.Println("Websocket connection closed abnormally, attempting to reconnect", err)
+			log.Println("Websocket connection closed abnormally, attempting to reconnect", err)
 
-				// Close the current connection
-				if err := conn.Close(); err != nil {
-					log.Println("Error closing websocket connection:", err)
+			// Close the current connection
+			if err := conn.Close(); err != nil {
+				log.Println("Error closing websocket connection:", err)
+			}
+
+			// Attempt to reconnect
+			for {
+				conn, err = connectWebSocket(config.GetConfig().WebsocketConfig.WSURL, http.Header{
+					"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
+				})
+				if err != nil {
+					log.Println("Reconnect attempt failed:", err)
+					time.Sleep(time.Second * time.Duration(config.GetConfig().WebsocketConfig.WSReconnectInterval))
+				} else {
+					log.Println("Reconnected to websocket server")
+					break
 				}
-
-				// Attempt to reconnect
-				for {
-					conn, err = connectWebSocket(config.GetConfig().WebsocketConfig.WSURL, http.Header{
-						"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
-					})
-					if err != nil {
-						log.Println("Reconnect attempt failed:", err)
-						time.Sleep(time.Second * time.Duration(config.GetConfig().WebsocketConfig.WSReconnectInterval))
-					} else {
-						log.Println("Reconnected to websocket server")
-						break
-					}
-				}
-
-			} else {
-				log.Println("Error reading message:", err)
-				break
 			}
 		}
 
