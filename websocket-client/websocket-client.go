@@ -127,7 +127,9 @@ func SendMessage(ctx context.Context, messageType types.EventList, message inter
 
 	// log.Println("Sending message:", string(msg.Payload))
 
-	conn.WriteJSON(msg)
+	if err := conn.WriteJSON(msg); err != nil {
+		slog.Error("error writing message to websocket", "error", err)
+	}
 
 	return nil
 }
