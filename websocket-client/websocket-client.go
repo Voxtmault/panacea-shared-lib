@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"time"
@@ -34,11 +33,11 @@ func listenForMessages() {
 		// Read message from the server
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("Websocket connection closed abnormally, attempting to reconnect", err)
+			slog.Error("websocket connection closed abnormally, attempting to reconnect", "error", err)
 
 			// Close the current connection
-			if err := conn.Close(); err != nil {
-				log.Println("Error closing websocket connection:", err)
+			if err := CloseWebsocketClient(); err != nil {
+				slog.Error("error closing websocket connection", "error", err)
 			}
 
 			// Attempt to reconnect
@@ -47,10 +46,10 @@ func listenForMessages() {
 					"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
 				})
 				if err != nil {
-					log.Println("Reconnect attempt failed:", err)
+					slog.Warn("reconnect attempt failed", "error", err)
 					time.Sleep(time.Second * time.Duration(config.GetConfig().WebsocketConfig.WSReconnectInterval))
 				} else {
-					log.Println("Reconnected to websocket server")
+					slog.Info("reconnected to websocket server")
 					break
 				}
 			}
@@ -58,7 +57,7 @@ func listenForMessages() {
 
 		// Print the received message
 		if config.GetConfig().DebugMode {
-			log.Println("Received message:", string(message))
+			slog.Debug("received message", "data", string(message))
 		}
 
 		// Business Logic Here
