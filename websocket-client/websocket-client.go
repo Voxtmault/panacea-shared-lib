@@ -125,12 +125,13 @@ func listenForMessages() {
 				slog.Error("unable to write close message to the websocket server", "reason", err)
 				return
 			}
+
 			select {
 			case <-done:
 			case <-time.After(time.Second):
 			}
 
-			conn = nil
+			slog.Debug("successfully closed websocket connection")
 			return
 		}
 	}
@@ -158,31 +159,32 @@ func InitWebsocketClient() error {
 	return nil
 }
 
+// Deprecated: InitWebsocketClient has already implemented the close mechanism. This function will just return nil if called to avoid panic errors
 func CloseWebsocketClient() error {
-	connMutex.Lock()
-	closing = true
-	connMutex.Unlock()
+	// connMutex.Lock()
+	// closing = true
+	// connMutex.Unlock()
 
-	if conn == nil {
-		slog.Debug("successfully closed websocket connection")
-		return nil
-	}
+	// if conn == nil {
+	// 	slog.Debug("successfully closed websocket connection")
+	// 	return nil
+	// }
 
-	slog.Debug("closing websocket connection")
-	// Ensure the WebSocket connection is closed
-	if err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
-		slog.Error("unable to write close message to the websocket server", "reason", err)
-		return eris.Wrap(err, "writing close message to the WebSocket server")
-	}
+	// slog.Debug("closing websocket connection")
+	// // Ensure the WebSocket connection is closed
+	// if err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
+	// 	slog.Error("unable to write close message to the websocket server", "reason", err)
+	// 	return eris.Wrap(err, "writing close message to the WebSocket server")
+	// }
 
-	connMutex.Lock()
-	if err := conn.Close(); err != nil {
-		slog.Error("unable to close the websocket connection", "reason", err)
-		return eris.Wrap(err, "closing the WebSocket connection")
-	}
-	connMutex.Unlock()
+	// connMutex.Lock()
+	// if err := conn.Close(); err != nil {
+	// 	slog.Error("unable to close the websocket connection", "reason", err)
+	// 	return eris.Wrap(err, "closing the WebSocket connection")
+	// }
+	// connMutex.Unlock()
 
-	slog.Debug("successfully closed websocket connection")
+	// slog.Debug("successfully closed websocket connection")
 	return nil
 }
 
