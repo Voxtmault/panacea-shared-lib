@@ -129,6 +129,8 @@ func listenForMessages() {
 			case <-done:
 			case <-time.After(time.Second):
 			}
+
+			conn = nil
 			return
 		}
 	}
@@ -160,6 +162,11 @@ func CloseWebsocketClient() error {
 	connMutex.Lock()
 	closing = true
 	connMutex.Unlock()
+
+	if conn == nil {
+		slog.Debug("successfully closed websocket connection")
+		return nil
+	}
 
 	slog.Debug("closing websocket connection")
 	// Ensure the WebSocket connection is closed
