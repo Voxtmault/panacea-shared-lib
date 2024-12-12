@@ -85,6 +85,12 @@ type TransactionColorCodeSettings struct {
 	Undefined string
 }
 
+type FileHandlingConfig struct {
+	MaxFileSize      int64
+	AllowedExtension []string
+	UploadDir        string
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -96,6 +102,7 @@ type AppConfig struct {
 	MailServiceConfig
 	AuthServiceConfig
 	TransactionColorCodeSettings
+	FileHandlingConfig
 	AppMode              string
 	AppLanguage          string
 	AppTimezone          string
@@ -176,6 +183,11 @@ func New(envPath string) *AppConfig {
 			Income:    getEnv("TRANSACTION_COLOR_CODE_INCOME", "#34eb40"),
 			Expense:   getEnv("TRANSACTION_COLOR_CODE_EXPENSE", "#eb3434"),
 			Undefined: getEnv("TRANSACTION_COLOR_CODE_UNDEFINED", "#ebdc34"),
+		},
+		FileHandlingConfig: FileHandlingConfig{
+			MaxFileSize:      int64(getEnvAsInt("MAX_FILE_SIZE", 1024*20)), // 20 MB Max
+			AllowedExtension: getEnvAsSlice("ALLOWED_FILE_EXTENSIONS", []string{"jpg", "jpeg", "png"}, ","),
+			UploadDir:        getEnv("UPLOAD_DIR", "assets/vendors"),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
