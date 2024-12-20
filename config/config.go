@@ -91,6 +91,17 @@ type FileHandlingConfig struct {
 	UploadDir        string
 }
 
+type WalletConfig struct {
+	CustomerNumberLength uint
+	SubCompanyCodeLength uint
+	SubCompanyCode       uint
+	DivisionCodeLength   uint
+	DivisionCode         uint
+	ServiceCodeLength    uint
+	ServiceCode          uint
+	UserCodeLength       uint
+}
+
 type AppConfig struct {
 	DBConfig
 	RedisConfig
@@ -103,6 +114,7 @@ type AppConfig struct {
 	AuthServiceConfig
 	TransactionColorCodeSettings
 	FileHandlingConfig
+	WalletConfig
 	AppMode              string
 	AppLanguage          string
 	AppTimezone          string
@@ -188,6 +200,15 @@ func New(envPath string) *AppConfig {
 			MaxFileSize:      int64(getEnvAsInt("MAX_FILE_SIZE", 1024*20)), // 20 MB Max
 			AllowedExtension: getEnvAsSlice("ALLOWED_FILE_EXTENSIONS", []string{"jpg", "jpeg", "png"}, ","),
 			UploadDir:        getEnv("UPLOAD_DIR", "assets/vendors"),
+		},
+		WalletConfig: WalletConfig{
+			CustomerNumberLength: uint(getEnvAsInt("CUSTOMER_NUMBER_LENGTH", 18)),
+			SubCompanyCodeLength: uint(getEnvAsInt("SUB_COMPANY_CODE_LENGTH", 3)),
+			SubCompanyCode:       uint(getEnvAsInt("SUB_COMPANY_CODE", 001)),
+			DivisionCodeLength:   uint(getEnvAsInt("DIVISION_CODE_LENGTH", 2)),
+			DivisionCode:         uint(getEnvAsInt("DIVISION_CODE", 00)),
+			ServiceCodeLength:    uint(getEnvAsInt("SERVICE_CODE_LENGTH", 2)),
+			UserCodeLength:       uint(getEnvAsInt("USER_CODE_LENGTH", 11)),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
