@@ -3,8 +3,6 @@ package websocketclient
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -48,7 +46,6 @@ func connectWebSocket(serverURL string) error {
 
 // listenForMessages listens for incoming message from websocket hub. Use DEBUG=true to print the message.
 func listenForMessages() {
-	slog.Info("starting websocket message listener go routine")
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
@@ -120,8 +117,6 @@ func listenForMessages() {
 	for {
 		select {
 		case <-done:
-			log.Println("listenMessage go routine exited")
-			fmt.Println("listenMessage go routine exited")
 			return
 		case <-interrupt:
 			slog.Info("interrupt signal received, closing websocket connection")
@@ -139,11 +134,7 @@ func listenForMessages() {
 
 			select {
 			case <-done:
-				log.Println("listenMessage go routine exited")
-				fmt.Println("listenMessage go routine exited")
 			case <-time.After(time.Second):
-				log.Println("listenMessage go routine exited")
-				fmt.Println("listenMessage go routine exited")
 			}
 
 			slog.Debug("successfully closed websocket connection")
@@ -231,7 +222,6 @@ func SendMessage(ctx context.Context, messageType types.EventList, message inter
 
 // flushMessageBuffer will send all the messages in the buffer to the websocket server.
 func flushMessageBuffer() {
-	slog.Info("starting websocket message flusher go routine")
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 	cfg := config.GetConfig()
@@ -263,8 +253,6 @@ func flushMessageBuffer() {
 					time.Sleep(time.Duration(cfg.WebsocketConfig.WSReconnectInterval) * time.Second)
 					continue
 				}
-
-				slog.Debug("sent message to the websocket")
 			}
 		}
 	}()
@@ -272,19 +260,13 @@ func flushMessageBuffer() {
 	for {
 		select {
 		case <-done:
-			log.Println("flushMessageBuffer go routine exited")
-			fmt.Println("flushMessageBuffer go routine exited")
 			return
 		case <-interrupt:
 			slog.Info("interrupt signal received, closing websocket message flusher go routine")
 			ctx.Done()
 			select {
 			case <-done:
-				log.Println("flushMessageBuffer go routine exited")
-				fmt.Println("flushMessageBuffer go routine exited")
 			case <-time.After(time.Second):
-				log.Println("flushMessageBuffer go routine exited")
-				fmt.Println("flushMessageBuffer go routine exited")
 			}
 			return
 		}
