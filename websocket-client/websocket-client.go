@@ -82,6 +82,7 @@ func listenForMessages() {
 					slog.Error("unable to close the websocket connection (reconnect)", "reason", err)
 					conn = nil
 				}
+				conn = nil
 
 				// Attempt to reconnect
 				index := 1
