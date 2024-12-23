@@ -30,6 +30,8 @@ func connectWebSocket(serverURL string) error {
 		"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
 	}
 
+	conn.Close()
+
 	// Connect to the WebSocket server with custom headers
 	conn, _, err = websocket.DefaultDialer.Dial(serverURL, headers)
 	if err != nil {
@@ -63,26 +65,25 @@ func listenForMessages() {
 
 				connMutex.Lock()
 				if closing {
+					slog.Debug("gracefully closing the websocket connection")
+					conn.Close()
 					connMutex.Unlock()
 					return
 				}
 				connMutex.Unlock()
 
 				slog.Error("unable to read message from the websocket server", "reason", err)
-				if closeErr := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); closeErr != nil {
-					slog.Error("unable to write close message to the websocket server (reconnect)", "reason", err)
-				}
-
-				if err := conn.Close(); err != nil {
-					slog.Error("unable to close the websocket connection (reconnect)", "reason", err)
-					conn = nil
-				}
+				// if closeErr := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); closeErr != nil {
+				// 	slog.Error("unable to write close message to the websocket server (reconnect)", "reason", err)
+				// }
 
 				// Attempt to reconnect
 				index := 1
 				for {
 					connMutex.Lock()
 					if closing {
+						slog.Debug("gracefully closing the websocket connection, while reconnecting")
+						conn.Close()
 						connMutex.Unlock()
 						return
 					}
@@ -98,6 +99,7 @@ func listenForMessages() {
 					}
 					index++
 				}
+				slog.Debug("successfully reconnected to the websocket server", "attempts", index)
 			}
 
 			if config.GetConfig().DebugMode {
@@ -245,7 +247,7 @@ func flushMessageBuffer() {
 					slog.Debug("waiting for websocket connection to be established")
 					time.Sleep(time.Duration(cfg.WebsocketConfig.WSReconnectInterval) * time.Second)
 				}
-				if err := conn.WriteJSON(jsonStr); err != nil {
+				if err := GetWSConn().WriteJSON(jsonStr); err != nil {
 					slog.Error("error flushing message to websocket", "reason", err)
 					continue
 				}
