@@ -18,12 +18,18 @@ import (
 )
 
 var (
-	conn      *websocket.Conn
-	connMutex sync.Mutex
-	closing   bool
+	conn          *websocket.Conn
+	connMutex     sync.Mutex
+	closing       bool
+	messageBuffer = make(chan *Event, 1000) // Buffer to store messages before sending to the server, with a maximum of 1000 messages
 )
 
 func connectWebSocket(serverURL string) error {
+	if conn != nil {
+		slog.Error("websocket connection is already established")
+		return eris.New("websocket connection is already established")
+	}
+
 	var err error
 	headers := http.Header{
 		"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
@@ -155,6 +161,9 @@ func InitWebsocketClient() error {
 	// Start a goroutine to listen for messages from the WebSocket server
 	go listenForMessages()
 
+	// Flush the message buffer
+	go flushMessageBuffer()
+
 	slog.Info("successfully established connection to the websocket server")
 	return nil
 }
@@ -192,7 +201,7 @@ func GetWSConn() *websocket.Conn {
 	return conn
 }
 
-// SendMessage will marshall the provided message before sending it to the websocket server
+// SendMessage will marshall the provided message before adding it to the message buffer
 func SendMessage(ctx context.Context, messageType types.EventList, message interface{}) error {
 
 	var msg Event
@@ -205,12 +214,67 @@ func SendMessage(ctx context.Context, messageType types.EventList, message inter
 		return eris.Wrap(err, "marshalling websocket payload")
 	}
 
-	if err = conn.WriteJSON(msg); err != nil {
-		slog.Error("unable to send message to the websocket server", "reason", err)
-		return eris.Wrap(err, "sending message to the WebSocket server")
-	}
+	// Add to the buffer and ensure safe concurrent access
+	messageBuffer <- &msg
 
 	return nil
+}
+
+// flushMessageBuffer will send all the messages in the buffer to the websocket server.
+func flushMessageBuffer() {
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+	cfg := config.GetConfig()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case msg := <-messageBuffer:
+				slog.Debug("received message from buffer", "message", string(msg.Payload))
+				for conn == nil {
+					slog.Debug("waiting for websocket connection to be established")
+					time.Sleep(time.Duration(cfg.WebsocketConfig.WSReconnectInterval) * time.Second)
+				}
+
+				jsonStr, err := json.Marshal(msg)
+				if err != nil {
+					slog.Error("unable to marshall websocket message", "reason", err)
+					continue
+				}
+
+				// Send the message
+				if err := conn.WriteJSON(jsonStr); err != nil {
+					slog.Error("error flushing message to websocket", "reason", err)
+					continue
+				}
+				slog.Debug("sent message to the websocket")
+			}
+		}
+	}()
+
+	for {
+		select {
+		case <-done:
+			return
+		case <-interrupt:
+			slog.Info("interrupt signal received, closing websocket message flusher go routine")
+			ctx.Done()
+			select {
+			case <-done:
+			case <-time.After(time.Second):
+			}
+			return
+		}
+	}
 }
 
 func websocketBusinessLogic(event []byte) {
@@ -232,6 +296,6 @@ func websocketBusinessLogic(event []byte) {
 	if handler, exists := eventHandlers[message.Type]; exists {
 		handler(message)
 	} else {
-		slog.Info("unable to handle websocket message, unsupported message type", "received type", message.Type)
+		slog.Debug("unable to handle websocket message, unsupported message type", "received type", message.Type)
 	}
 }
