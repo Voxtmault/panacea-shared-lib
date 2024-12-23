@@ -30,7 +30,9 @@ func connectWebSocket(serverURL string) error {
 		"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
 	}
 
-	conn.Close()
+	if conn != nil {
+		conn.Close()
+	}
 
 	// Connect to the WebSocket server with custom headers
 	conn, _, err = websocket.DefaultDialer.Dial(serverURL, headers)
