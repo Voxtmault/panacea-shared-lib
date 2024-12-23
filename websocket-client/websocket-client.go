@@ -42,11 +42,13 @@ func connectWebSocket(serverURL string) error {
 		slog.Error("error connecting to websocket server", "reason", err)
 		return eris.Wrap(err, "error connecting to WebSocket server")
 	}
+
 	return nil
 }
 
 // listenForMessages listens for incoming message from websocket hub. Use DEBUG=true to print the message.
 func listenForMessages() {
+	slog.Info("starting websocket message listener go routine")
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
@@ -229,6 +231,7 @@ func SendMessage(ctx context.Context, messageType types.EventList, message inter
 
 // flushMessageBuffer will send all the messages in the buffer to the websocket server.
 func flushMessageBuffer() {
+	slog.Info("starting websocket message flusher go routine")
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 	cfg := config.GetConfig()
@@ -253,12 +256,11 @@ func flushMessageBuffer() {
 					continue
 				}
 
-				for conn == nil {
-					slog.Debug("waiting for websocket connection to be established")
-					time.Sleep(time.Duration(cfg.WebsocketConfig.WSReconnectInterval) * time.Second)
-				}
 				if err := GetWSConn().WriteJSON(jsonStr); err != nil {
 					slog.Error("error flushing message to websocket", "reason", err)
+					// Add to the buffer again
+					messageBuffer <- msg
+					time.Sleep(time.Duration(cfg.WebsocketConfig.WSReconnectInterval) * time.Second)
 					continue
 				}
 
