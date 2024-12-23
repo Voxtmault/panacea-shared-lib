@@ -25,8 +25,6 @@ var (
 )
 
 func connectWebSocket(serverURL string) error {
-	conn = nil
-
 	var err error
 	headers := http.Header{
 		"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
@@ -237,22 +235,21 @@ func flushMessageBuffer() {
 				return
 			case msg := <-messageBuffer:
 				slog.Debug("received message from buffer", "message", string(msg.Payload))
-				for conn == nil {
-					slog.Debug("waiting for websocket connection to be established")
-					time.Sleep(time.Duration(cfg.WebsocketConfig.WSReconnectInterval) * time.Second)
-				}
-
 				jsonStr, err := json.Marshal(msg)
 				if err != nil {
 					slog.Error("unable to marshall websocket message", "reason", err)
 					continue
 				}
 
-				// Send the message
+				for conn == nil {
+					slog.Debug("waiting for websocket connection to be established")
+					time.Sleep(time.Duration(cfg.WebsocketConfig.WSReconnectInterval) * time.Second)
+				}
 				if err := conn.WriteJSON(jsonStr); err != nil {
 					slog.Error("error flushing message to websocket", "reason", err)
 					continue
 				}
+
 				slog.Debug("sent message to the websocket")
 			}
 		}
