@@ -25,10 +25,7 @@ var (
 )
 
 func connectWebSocket(serverURL string) error {
-	if conn != nil {
-		slog.Error("websocket connection is already established")
-		return eris.New("websocket connection is already established")
-	}
+	conn = nil
 
 	var err error
 	headers := http.Header{
@@ -82,7 +79,6 @@ func listenForMessages() {
 					slog.Error("unable to close the websocket connection (reconnect)", "reason", err)
 					conn = nil
 				}
-				conn = nil
 
 				// Attempt to reconnect
 				index := 1
