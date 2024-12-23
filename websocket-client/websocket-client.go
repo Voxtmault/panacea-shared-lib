@@ -3,6 +3,8 @@ package websocketclient
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -116,6 +118,8 @@ func listenForMessages() {
 	for {
 		select {
 		case <-done:
+			log.Println("listenMessage go routine exited")
+			fmt.Println("listenMessage go routine exited")
 			return
 		case <-interrupt:
 			slog.Info("interrupt signal received, closing websocket connection")
@@ -133,7 +137,11 @@ func listenForMessages() {
 
 			select {
 			case <-done:
+				log.Println("listenMessage go routine exited")
+				fmt.Println("listenMessage go routine exited")
 			case <-time.After(time.Second):
+				log.Println("listenMessage go routine exited")
+				fmt.Println("listenMessage go routine exited")
 			}
 
 			slog.Debug("successfully closed websocket connection")
@@ -262,13 +270,19 @@ func flushMessageBuffer() {
 	for {
 		select {
 		case <-done:
+			log.Println("flushMessageBuffer go routine exited")
+			fmt.Println("flushMessageBuffer go routine exited")
 			return
 		case <-interrupt:
 			slog.Info("interrupt signal received, closing websocket message flusher go routine")
 			ctx.Done()
 			select {
 			case <-done:
+				log.Println("flushMessageBuffer go routine exited")
+				fmt.Println("flushMessageBuffer go routine exited")
 			case <-time.After(time.Second):
+				log.Println("flushMessageBuffer go routine exited")
+				fmt.Println("flushMessageBuffer go routine exited")
 			}
 			return
 		}
