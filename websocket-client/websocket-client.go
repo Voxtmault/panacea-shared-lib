@@ -240,13 +240,7 @@ func flushMessageBuffer() {
 				return
 			case msg := <-messageBuffer:
 				slog.Debug("received message from buffer", "message", string(msg.Payload))
-				jsonStr, err := json.Marshal(msg)
-				if err != nil {
-					slog.Error("unable to marshall websocket message", "reason", err)
-					continue
-				}
-
-				if err := GetWSConn().WriteJSON(jsonStr); err != nil {
+				if err := GetWSConn().WriteJSON(msg); err != nil {
 					slog.Error("error flushing message to websocket", "reason", err)
 					// Add to the buffer again
 					messageBuffer <- msg
