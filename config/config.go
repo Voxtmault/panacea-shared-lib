@@ -92,14 +92,14 @@ type FileHandlingConfig struct {
 }
 
 type WalletConfig struct {
-	CustomerNumberLength uint
+	CompanyCodeLength    uint
 	SubCompanyCodeLength uint
-	SubCompanyCode       uint
 	DivisionCodeLength   uint
-	DivisionCode         uint
 	ServiceCodeLength    uint
-	ServiceCode          uint
-	UserCodeLength       uint
+	CustomerNumberLength uint
+	CompanyCode          uint
+	SubCompanyCode       uint
+	DivisionCode         uint
 }
 
 type AppConfig struct {
@@ -202,13 +202,14 @@ func New(envPath string) *AppConfig {
 			UploadDir:        getEnv("UPLOAD_DIR", "assets/vendors"),
 		},
 		WalletConfig: WalletConfig{
-			CustomerNumberLength: uint(getEnvAsInt("CUSTOMER_NUMBER_LENGTH", 18)),
+			CompanyCodeLength:    uint(getEnvAsInt("COMPANY_CODE_LENGTH", 3)),
 			SubCompanyCodeLength: uint(getEnvAsInt("SUB_COMPANY_CODE_LENGTH", 3)),
-			SubCompanyCode:       uint(getEnvAsInt("SUB_COMPANY_CODE", 001)),
 			DivisionCodeLength:   uint(getEnvAsInt("DIVISION_CODE_LENGTH", 2)),
-			DivisionCode:         uint(getEnvAsInt("DIVISION_CODE", 00)),
 			ServiceCodeLength:    uint(getEnvAsInt("SERVICE_CODE_LENGTH", 2)),
-			UserCodeLength:       uint(getEnvAsInt("USER_CODE_LENGTH", 11)),
+			CustomerNumberLength: uint(getEnvAsInt("CUSTOMER_NUMBER_LENGTH", 10)),
+			CompanyCode:          uint(getEnvAsInt("COMPANY_CODE", 001)),
+			SubCompanyCode:       uint(getEnvAsInt("SUB_COMPANY_CODE", 000)),
+			DivisionCode:         uint(getEnvAsInt("DIVISION_CODE", 01)),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
