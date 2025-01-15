@@ -97,9 +97,9 @@ type WalletConfig struct {
 	DivisionCodeLength   uint
 	ServiceCodeLength    uint
 	CustomerNumberLength uint
-	CompanyCode          uint
-	SubCompanyCode       uint
-	DivisionCode         uint
+	CompanyCode          string
+	SubCompanyCode       string
+	DivisionCode         string
 }
 
 type AppConfig struct {
@@ -207,9 +207,9 @@ func New(envPath string) *AppConfig {
 			DivisionCodeLength:   uint(getEnvAsInt("DIVISION_CODE_LENGTH", 2)),
 			ServiceCodeLength:    uint(getEnvAsInt("SERVICE_CODE_LENGTH", 2)),
 			CustomerNumberLength: uint(getEnvAsInt("CUSTOMER_NUMBER_LENGTH", 10)),
-			CompanyCode:          uint(getEnvAsInt("COMPANY_CODE", 001)),
-			SubCompanyCode:       uint(getEnvAsInt("SUB_COMPANY_CODE", 000)),
-			DivisionCode:         uint(getEnvAsInt("DIVISION_CODE", 01)),
+			CompanyCode:          getEnv("COMPANY_CODE", "001"),
+			SubCompanyCode:       getEnv("SUB_COMPANY_CODE", "000"),
+			DivisionCode:         getEnv("DIVISION_CODE", "01"),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
