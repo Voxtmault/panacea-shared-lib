@@ -101,6 +101,10 @@ type WalletConfig struct {
 	CompanyCode          string
 	SubCompanyCode       string
 	DivisionCode         string
+	MinimumTopUp         uint
+	MinimumWithdraw      uint
+	MaximumTopUp         uint
+	MaximumWithdraw      uint
 }
 
 type AppConfig struct {
@@ -212,6 +216,10 @@ func New(envPath string) *AppConfig {
 			CompanyCode:          getEnv("COMPANY_CODE", "001"),
 			SubCompanyCode:       getEnv("SUB_COMPANY_CODE", "000"),
 			DivisionCode:         getEnv("DIVISION_CODE", "01"),
+			MinimumTopUp:         uint(getEnvAsInt("MINIMUM_TOPUP", 10000)),
+			MinimumWithdraw:      uint(getEnvAsInt("MINIMUM_WITHDRAW", 10000)),
+			MaximumTopUp:         uint(getEnvAsInt("MAXIMUM_TOPUP", 10000000)),
+			MaximumWithdraw:      uint(getEnvAsInt("MAXIMUM_WITHDRAW", 1000000)),
 		},
 		AppMode:              getEnv("APP_MODE", "devs"),
 		AppLanguage:          getEnv("APP_LANG", "en"),
