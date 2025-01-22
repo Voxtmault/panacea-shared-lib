@@ -80,6 +80,7 @@ type AuthServiceConfig struct {
 }
 
 type TransactionColorCodeSettings struct {
+	TopUp     string
 	Income    string
 	Expense   string
 	Undefined string
@@ -192,6 +193,7 @@ func New(envPath string) *AppConfig {
 			AuthServiceAdr: getEnv("AUTH_SERVICE_ADR", ""),
 		},
 		TransactionColorCodeSettings: TransactionColorCodeSettings{
+			TopUp:     getEnv("TRANSACTION_COLOR_CODE_TOPUP", "#0474bc"),
 			Income:    getEnv("TRANSACTION_COLOR_CODE_INCOME", "#34eb40"),
 			Expense:   getEnv("TRANSACTION_COLOR_CODE_EXPENSE", "#eb3434"),
 			Undefined: getEnv("TRANSACTION_COLOR_CODE_UNDEFINED", "#ebdc34"),
