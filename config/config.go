@@ -79,6 +79,10 @@ type AuthServiceConfig struct {
 	AuthServiceAdr string
 }
 
+type ShifterServiceConfig struct {
+	ShifterServiceAdr string
+}
+
 type TransactionColorCodeSettings struct {
 	TopUp     string
 	Income    string
@@ -117,6 +121,7 @@ type AppConfig struct {
 	SMTPConfig
 	MailServiceConfig
 	AuthServiceConfig
+	ShifterServiceConfig
 	TransactionColorCodeSettings
 	FileHandlingConfig
 	WalletConfig
@@ -195,6 +200,9 @@ func New(envPath string) *AppConfig {
 		},
 		AuthServiceConfig: AuthServiceConfig{
 			AuthServiceAdr: getEnv("AUTH_SERVICE_ADR", ""),
+		},
+		ShifterServiceConfig: ShifterServiceConfig{
+			ShifterServiceAdr: getEnv("SHIFTER_SERVICE_ADR", ""),
 		},
 		TransactionColorCodeSettings: TransactionColorCodeSettings{
 			TopUp:     getEnv("TRANSACTION_COLOR_CODE_TOPUP", "#0474bc"),
