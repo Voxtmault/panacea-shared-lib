@@ -23,6 +23,17 @@ var (
 	closing   bool
 )
 
+const (
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
+
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 60 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+)
+
 func connect(cfg *config.WebsocketConfig) (*websocket.Conn, error) {
 	headers := http.Header{
 		"X-API-TOKEN": []string{cfg.WSApiToken},
@@ -47,63 +58,91 @@ func listenForMessages() {
 	// Handle read message in a separate goroutine
 	go func() {
 		defer close(done)
+
+		// This outer loop is the reconnection loop.
 		for {
-			// Read message from the server
-			_, message, err := conn.ReadMessage()
-			if err != nil {
-				// If the connection is intentionally closed, we exit the read loop.
-				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					slog.Info("websocket connection closed by the server")
-				} else {
-					slog.Error("unable to read message from the websocket server", "reason", err)
-				}
-
-				connMutex.RLock()
-				if closing {
-					connMutex.RUnlock()
-					return
-				}
+			connMutex.RLock()
+			if closing {
 				connMutex.RUnlock()
+				return
+			}
+			currentConn := conn
+			connMutex.RUnlock()
 
-				// Attempt to reconnect
-				index := 1
-				cfg := config.GetConfig().WebsocketConfig
-				reconnectInterval := time.Second * time.Duration(cfg.WSReconnectInterval)
+			// --- Live Session ---
+			// This block manages an active connection. It will exit when the connection dies.
+			pingTicker := time.NewTicker(pingPeriod)
+			currentConn.SetReadDeadline(time.Now().Add(pongWait))
+			currentConn.SetPongHandler(func(string) error {
+				currentConn.SetReadDeadline(time.Now().Add(pongWait))
+				return nil
+			})
+
+			// Start a reader goroutine for this connection. It sends errors back on a channel.
+			readErrChan := make(chan error, 1)
+			go func() {
 				for {
-					connMutex.RLock()
-					if closing {
-						connMutex.RUnlock()
+					_, message, err := currentConn.ReadMessage()
+					if err != nil {
+						readErrChan <- err
 						return
 					}
-					connMutex.RUnlock()
+					websocketBusinessLogic(message)
+				}
+			}()
 
-					slog.Info("attempting to reconnect to websocket server...")
-					newConn, err := connect(&cfg)
-					if err != nil {
-						slog.Error("failed to reconnect to the websocket server", "reason", err)
-						time.Sleep(reconnectInterval)
+			// The event loop for the active session.
+			sessionActive := true
+			for sessionActive {
+				select {
+				case err := <-readErrChan:
+					if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+						slog.Info("websocket connection closed by server")
 					} else {
-						slog.Info("reconnected to the websocket server", "attempts", index)
-						connMutex.Lock()
-						if closing { // Double-check after acquiring lock
-							connMutex.Unlock()
-							newConn.Close()
-							return
-						}
-						conn = newConn
-						connMutex.Unlock()
-						break
+						slog.Error("read error on websocket, will reconnect", "reason", err)
 					}
-					index++
+					sessionActive = false // Exit session loop to trigger reconnect
+				case <-pingTicker.C:
+					currentConn.SetWriteDeadline(time.Now().Add(writeWait))
+					if err := currentConn.WriteMessage(websocket.PingMessage, nil); err != nil {
+						slog.Warn("failed to write ping, will reconnect", "reason", err)
+						sessionActive = false // Exit session loop to trigger reconnect
+					}
 				}
 			}
+			pingTicker.Stop()
 
-			if config.GetConfig().DebugMode {
-				slog.Debug("Received message:", "message", string(message))
+			// --- Reconnection Logic ---
+			connMutex.RLock()
+			if closing {
+				connMutex.RUnlock()
+				return
 			}
+			connMutex.RUnlock()
 
-			// Handle business logic
-			websocketBusinessLogic(message)
+			index := 1
+			cfg := config.GetConfig().WebsocketConfig
+			reconnectInterval := time.Second * time.Duration(cfg.WSReconnectInterval)
+			for {
+				slog.Info("attempting to reconnect to websocket server...")
+				newConn, err := connect(&cfg)
+				if err != nil {
+					slog.Error("failed to reconnect to the websocket server", "reason", err)
+					time.Sleep(reconnectInterval)
+				} else {
+					slog.Info("reconnected to the websocket server", "attempts", index)
+					connMutex.Lock()
+					if closing { // Double-check after acquiring lock
+						connMutex.Unlock()
+						newConn.Close()
+						return
+					}
+					conn = newConn
+					connMutex.Unlock()
+					break // Exit reconnect loop, outer loop will start a new session.
+				}
+				index++
+			}
 		}
 	}()
 
@@ -208,6 +247,11 @@ func SendMessage(ctx context.Context, messageType types.EventList, message inter
 
 	if conn == nil {
 		return eris.New("cannot send message: websocket connection not available")
+	}
+
+	// Set a deadline for the write operation to prevent it from blocking indefinitely.
+	if err := conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+		return eris.Wrap(err, "setting write deadline")
 	}
 
 	// WriteJSON is safe for concurrent use. The mutex here protects the `conn` variable itself.
