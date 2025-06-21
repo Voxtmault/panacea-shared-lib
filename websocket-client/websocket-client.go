@@ -19,23 +19,22 @@ import (
 
 var (
 	conn      *websocket.Conn
-	connMutex sync.Mutex
+	connMutex sync.RWMutex
 	closing   bool
 )
 
-func connectWebSocket(serverURL string) error {
-	var err error
+func connect(cfg *config.WebsocketConfig) (*websocket.Conn, error) {
 	headers := http.Header{
-		"X-API-TOKEN": []string{config.GetConfig().WebsocketConfig.WSApiToken},
+		"X-API-TOKEN": []string{cfg.WSApiToken},
 	}
 
 	// Connect to the WebSocket server with custom headers
-	conn, _, err = websocket.DefaultDialer.Dial(serverURL, headers)
+	c, _, err := websocket.DefaultDialer.Dial(cfg.WSURL, headers)
 	if err != nil {
 		slog.Error("error connecting to websocket server", "reason", err)
-		return eris.Wrap(err, "error connecting to WebSocket server")
+		return nil, eris.Wrap(err, "error connecting to WebSocket server")
 	}
-	return nil
+	return c, nil
 }
 
 // listenForMessages listens for incoming message from websocket hub. Use DEBUG=true to print the message.
@@ -52,47 +51,47 @@ func listenForMessages() {
 			// Read message from the server
 			_, message, err := conn.ReadMessage()
 			if err != nil {
-				// For every read error, we will attempt to reconnect to the server while also checking
-				// if the connection is intented to be closed or not
-
+				// If the connection is intentionally closed, we exit the read loop.
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
 					slog.Info("websocket connection closed by the server")
-					return
+				} else {
+					slog.Error("unable to read message from the websocket server", "reason", err)
 				}
 
-				connMutex.Lock()
+				connMutex.RLock()
 				if closing {
-					connMutex.Unlock()
+					connMutex.RUnlock()
 					return
 				}
-				connMutex.Unlock()
-
-				slog.Error("unable to read message from the websocket server", "reason", err)
-				if closeErr := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); closeErr != nil {
-					slog.Error("unable to write close message to the websocket server (reconnect)", "reason", err)
-				}
-
-				if err := conn.Close(); err != nil {
-					slog.Error("unable to close the websocket connection (reconnect)", "reason", err)
-					conn = nil
-				}
+				connMutex.RUnlock()
 
 				// Attempt to reconnect
 				index := 1
+				cfg := config.GetConfig().WebsocketConfig
+				reconnectInterval := time.Second * time.Duration(cfg.WSReconnectInterval)
 				for {
-					connMutex.Lock()
+					connMutex.RLock()
 					if closing {
-						connMutex.Unlock()
+						connMutex.RUnlock()
 						return
 					}
-					connMutex.Unlock()
+					connMutex.RUnlock()
 
-					err := connectWebSocket(config.GetConfig().WebsocketConfig.WSURL)
+					slog.Info("attempting to reconnect to websocket server...")
+					newConn, err := connect(&cfg)
 					if err != nil {
 						slog.Error("failed to reconnect to the websocket server", "reason", err)
-						time.Sleep(time.Second * time.Duration(config.GetConfig().WebsocketConfig.WSReconnectInterval))
+						time.Sleep(reconnectInterval)
 					} else {
-						slog.Debug("reconnected to the websocket server", "attempts", index)
+						slog.Info("reconnected to the websocket server", "attempts", index)
+						connMutex.Lock()
+						if closing { // Double-check after acquiring lock
+							connMutex.Unlock()
+							newConn.Close()
+							return
+						}
+						conn = newConn
+						connMutex.Unlock()
 						break
 					}
 					index++
@@ -115,19 +114,15 @@ func listenForMessages() {
 		case <-interrupt:
 			slog.Info("interrupt signal received, closing websocket connection")
 
-			connMutex.Lock()
-			closing = true
-			connMutex.Unlock()
-
-			// Cleanly close the connection by sending a close message and then
-			// waiting (with timeout) for the server to close the connection.
-			if err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
-				slog.Error("unable to write close message to the websocket server", "reason", err)
-				return
+			if err := CloseWebsocketClient(); err != nil {
+				slog.Error("error during websocket client shutdown", "reason", err)
 			}
+
 			select {
 			case <-done:
+				slog.Debug("read loop terminated gracefully")
 			case <-time.After(time.Second):
+				slog.Warn("timed out waiting for read loop to close")
 			}
 			return
 		}
@@ -136,18 +131,24 @@ func listenForMessages() {
 
 func InitWebsocketClient() error {
 	slog.Debug("initializing websocket client")
-	if config.GetConfig().WebsocketConfig.WSURL == "" {
+	cfg := config.GetConfig().WebsocketConfig
+	if cfg.WSURL == "" {
 		return eris.New("websocket URL not set")
 	}
-	if config.GetConfig().WebsocketConfig.WSApiToken == "" {
+	if cfg.WSApiToken == "" {
 		return eris.New("websocket API Token not set")
 	}
 
 	// Establish WebSocket connection
-	if err := connectWebSocket(config.GetConfig().WebsocketConfig.WSURL); err != nil {
+	newConn, err := connect(&cfg)
+	if err != nil {
 		slog.Error("unable to establish connection to the websocket server", "reason", err)
 		return eris.Wrap(err, "establishing connection to the WebSocket server")
 	}
+	connMutex.Lock()
+	conn = newConn
+	closing = false
+	connMutex.Unlock()
 
 	// Start a goroutine to listen for messages from the WebSocket server
 	go listenForMessages()
@@ -158,28 +159,34 @@ func InitWebsocketClient() error {
 
 func CloseWebsocketClient() error {
 	connMutex.Lock()
+	if closing {
+		connMutex.Unlock()
+		return nil // Already closing or closed
+	}
 	closing = true
+	c := conn
 	connMutex.Unlock()
+
+	if c == nil {
+		return nil // Nothing to close
+	}
 
 	slog.Debug("closing websocket connection")
-	// Ensure the WebSocket connection is closed
-	if err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
-		slog.Error("unable to write close message to the websocket server", "reason", err)
-		return eris.Wrap(err, "writing close message to the WebSocket server")
+	// Send a close message to the peer.
+	err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	if err != nil && !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+		slog.Warn("failed to write close message, connection may be broken", "reason", err)
 	}
 
-	connMutex.Lock()
-	if err := conn.Close(); err != nil {
-		slog.Error("unable to close the websocket connection", "reason", err)
-		return eris.Wrap(err, "closing the WebSocket connection")
-	}
-	connMutex.Unlock()
-
-	slog.Debug("successfully closed websocket connection")
-	return nil
+	// Close the underlying network connection.
+	// This will cause ReadMessage in the listener to return an error, which will then
+	// check the 'closing' flag and exit the goroutine.
+	return c.Close()
 }
 
 func GetWSConn() *websocket.Conn {
+	connMutex.RLock()
+	defer connMutex.RUnlock()
 	return conn
 }
 
@@ -196,6 +203,14 @@ func SendMessage(ctx context.Context, messageType types.EventList, message inter
 		return eris.Wrap(err, "marshalling websocket payload")
 	}
 
+	connMutex.RLock()
+	defer connMutex.RUnlock()
+
+	if conn == nil {
+		return eris.New("cannot send message: websocket connection not available")
+	}
+
+	// WriteJSON is safe for concurrent use. The mutex here protects the `conn` variable itself.
 	if err = conn.WriteJSON(msg); err != nil {
 		slog.Error("unable to send message to the websocket server", "reason", err)
 		return eris.Wrap(err, "sending message to the WebSocket server")
