@@ -74,6 +74,7 @@ func listenForMessages() {
 			pingTicker := time.NewTicker(pingPeriod)
 			currentConn.SetReadDeadline(time.Now().Add(pongWait))
 			currentConn.SetPongHandler(func(string) error {
+				slog.Debug("received pong from server")
 				currentConn.SetReadDeadline(time.Now().Add(pongWait))
 				return nil
 			})
